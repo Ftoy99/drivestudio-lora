@@ -5,8 +5,8 @@ import logging
 import argparse
 import numpy as np
 
-from datasets.tools.extract_smpl import run_4DHumans
-from datasets.tools.postprocess import match_and_postprocess
+from extract_smpl import run_4DHumans
+from postprocess import match_and_postprocess
 
 logger = logging.getLogger()
 
