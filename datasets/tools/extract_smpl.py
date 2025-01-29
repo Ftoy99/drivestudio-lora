@@ -18,11 +18,58 @@ from phalp.configs.base import FullConfig, CACHE_DIR
 from phalp.models.hmar.hmr import HMR2018Predictor
 from phalp.trackers.PHALP import PHALP
 from phalp.utils import get_pylogger
-from third_party.Humans4D.hmr2.datasets.utils import expand_bbox_to_aspect_ratio
+
+def expand_to_aspect_ratio(input_shape, target_aspect_ratio=None):
+    """Increase the size of the bounding box to match the target shape."""
+    if target_aspect_ratio is None:
+        return input_shape
+
+    try:
+        w , h = input_shape
+    except (ValueError, TypeError):
+        return input_shape
+
+    w_t, h_t = target_aspect_ratio
+    if h / w < h_t / w_t:
+        h_new = max(w * h_t / w_t, h)
+        w_new = w
+    else:
+        h_new = h
+        w_new = max(h * w_t / h_t, w)
+    if h_new < h or w_new < w:
+        breakpoint()
+    return np.array([w_new, h_new])
+
+def expand_bbox_to_aspect_ratio(bbox, target_aspect_ratio=None):
+    # bbox: np.array: (N,4) detectron2 bbox format
+    # target_aspect_ratio: (width, height)
+    if target_aspect_ratio is None:
+        return bbox
+
+    is_singleton = (bbox.ndim == 1)
+    if is_singleton:
+        bbox = bbox[None, :]
+
+    if bbox.shape[0] > 0:
+        center = np.stack(((bbox[:, 0] + bbox[:, 2]) / 2, (bbox[:, 1] + bbox[:, 3]) / 2), axis=1)
+        scale_wh = np.stack((bbox[:, 2] - bbox[:, 0], bbox[:, 3] - bbox[:, 1]), axis=1)
+        scale_wh = np.stack([expand_to_aspect_ratio(wh, target_aspect_ratio) for wh in scale_wh], axis=0)
+        bbox = np.stack([
+            center[:, 0] - scale_wh[:, 0] / 2,
+            center[:, 1] - scale_wh[:, 1] / 2,
+            center[:, 0] + scale_wh[:, 0] / 2,
+            center[:, 1] + scale_wh[:, 1] / 2,
+        ], axis=1)
+
+    if is_singleton:
+        bbox = bbox[0, :]
+
+    return bbox
 
 warnings.filterwarnings('ignore')
 
 logger = logging.getLogger()
+
 
 class HMR2Predictor(HMR2018Predictor):
     def __init__(self, cfg) -> None:
@@ -40,8 +87,8 @@ class HMR2Predictor(HMR2018Predictor):
     def forward(self, x):
         hmar_out = self.hmar_old(x)
         batch = {
-            'img': x[:,:3,:,:],
-            'mask': (x[:,3,:,:]).clip(0,1),
+            'img': x[:, :3, :, :],
+            'mask': (x[:, 3, :, :]).clip(0, 1),
         }
         model_out = self.model(batch)
         out = hmar_out | {
@@ -49,7 +96,8 @@ class HMR2Predictor(HMR2018Predictor):
             'pred_cam': model_out['pred_cam'],
         }
         return out
-    
+
+
 class HMR2023TextureSampler(HMR2Predictor):
     def __init__(self, cfg) -> None:
         super().__init__(cfg)
@@ -61,20 +109,20 @@ class HMR2023TextureSampler(HMR2Predictor):
         self.register_buffer('tex_bmap', torch.tensor(bmap, dtype=torch.float))
         self.register_buffer('tex_fmap', torch.tensor(fmap, dtype=torch.long))
 
-        self.img_size = 256         #self.cfg.MODEL.IMAGE_SIZE
-        self.focal_length = 5000.   #self.cfg.EXTRA.FOCAL_LENGTH
+        self.img_size = 256  # self.cfg.MODEL.IMAGE_SIZE
+        self.focal_length = 5000.  # self.cfg.EXTRA.FOCAL_LENGTH
 
         import neural_renderer as nr
         self.neural_renderer = nr.Renderer(dist_coeffs=None, orig_size=self.img_size,
-                                          image_size=self.img_size,
-                                          light_intensity_ambient=1,
-                                          light_intensity_directional=0,
-                                          anti_aliasing=False)
+                                           image_size=self.img_size,
+                                           light_intensity_ambient=1,
+                                           light_intensity_directional=0,
+                                           anti_aliasing=False)
 
     def forward(self, x):
         batch = {
-            'img': x[:,:3,:,:],
-            'mask': (x[:,3,:,:]).clip(0,1),
+            'img': x[:, :3, :, :],
+            'mask': (x[:, 3, :, :]).clip(0, 1),
         }
         model_out = self.model(batch)
 
@@ -87,27 +135,27 @@ class HMR2023TextureSampler(HMR2Predictor):
             # faces: F,3
             valid_mask = (fmap >= 0)
 
-            fmap_flat = fmap[valid_mask]      # N
-            bmap_flat = bmap[valid_mask,:]    # N,3
+            fmap_flat = fmap[valid_mask]  # N
+            bmap_flat = bmap[valid_mask, :]  # N,3
 
             face_vids = faces[fmap_flat, :]  # N,3
-            face_verts = verts[:, face_vids, :] # B,N,3,3
+            face_verts = verts[:, face_vids, :]  # B,N,3,3
 
             bs = face_verts.shape
-            map_verts = torch.einsum('bnij,ni->bnj', face_verts, bmap_flat) # B,N,3
+            map_verts = torch.einsum('bnij,ni->bnj', face_verts, bmap_flat)  # B,N,3
 
             return map_verts, valid_mask
 
         pred_verts = model_out['pred_vertices'] + model_out['pred_cam_t'].unsqueeze(1)
         device = pred_verts.device
         face_tensor = torch.tensor(self.smpl.faces.astype(np.int64), dtype=torch.long, device=device)
-        map_verts, valid_mask = unproject_uvmap_to_mesh(self.tex_bmap, self.tex_fmap, pred_verts, face_tensor) # B,N,3
+        map_verts, valid_mask = unproject_uvmap_to_mesh(self.tex_bmap, self.tex_fmap, pred_verts, face_tensor)  # B,N,3
 
         # Project map_verts to image using K,R,t
         # map_verts_view = einsum('bij,bnj->bni', R, map_verts) + t # R=I t=0
         focal = self.focal_length / (self.img_size / 2)
-        map_verts_proj = focal * map_verts[:, :, :2] / map_verts[:, :, 2:3] # B,N,2
-        map_verts_depth = map_verts[:, :, 2] # B,N
+        map_verts_proj = focal * map_verts[:, :, :2] / map_verts[:, :, 2:3]  # B,N,2
+        map_verts_depth = map_verts[:, :, 2]  # B,N
 
         # Render Depth. Annoying but we need to create this
         K = torch.eye(3, device=device)
@@ -117,32 +165,34 @@ class HMR2023TextureSampler(HMR2Predictor):
         R = torch.eye(3, device=device).unsqueeze(0)
         t = torch.zeros(3, device=device).unsqueeze(0)
         rend_depth = self.neural_renderer(pred_verts,
-                                        face_tensor[None].expand(pred_verts.shape[0], -1, -1).int(),
-                                        # textures=texture_atlas_rgb,
-                                        mode='depth',
-                                        K=K, R=R, t=t)
+                                          face_tensor[None].expand(pred_verts.shape[0], -1, -1).int(),
+                                          # textures=texture_atlas_rgb,
+                                          mode='depth',
+                                          K=K, R=R, t=t)
 
-        rend_depth_at_proj = torch.nn.functional.grid_sample(rend_depth[:,None,:,:], map_verts_proj[:,None,:,:]) # B,1,1,N
-        rend_depth_at_proj = rend_depth_at_proj.squeeze(1).squeeze(1) # B,N
+        rend_depth_at_proj = torch.nn.functional.grid_sample(rend_depth[:, None, :, :],
+                                                             map_verts_proj[:, None, :, :])  # B,1,1,N
+        rend_depth_at_proj = rend_depth_at_proj.squeeze(1).squeeze(1)  # B,N
 
-        img_rgba = torch.cat([batch['img'], batch['mask'][:,None,:,:]], dim=1) # B,4,H,W
-        img_rgba_at_proj = torch.nn.functional.grid_sample(img_rgba, map_verts_proj[:,None,:,:]) # B,4,1,N
-        img_rgba_at_proj = img_rgba_at_proj.squeeze(2) # B,4,N
+        img_rgba = torch.cat([batch['img'], batch['mask'][:, None, :, :]], dim=1)  # B,4,H,W
+        img_rgba_at_proj = torch.nn.functional.grid_sample(img_rgba, map_verts_proj[:, None, :, :])  # B,4,1,N
+        img_rgba_at_proj = img_rgba_at_proj.squeeze(2)  # B,4,N
 
-        visibility_mask = map_verts_depth <= (rend_depth_at_proj + 1e-4) # B,N
-        img_rgba_at_proj[:,3,:][~visibility_mask] = 0
+        visibility_mask = map_verts_depth <= (rend_depth_at_proj + 1e-4)  # B,N
+        img_rgba_at_proj[:, 3, :][~visibility_mask] = 0
 
         # Paste image back onto square uv_image
         uv_image = torch.zeros((batch['img'].shape[0], 4, 256, 256), dtype=torch.float, device=device)
         uv_image[:, :, valid_mask] = img_rgba_at_proj
 
         out = {
-            'uv_image':  uv_image,
-            'uv_vector' : self.hmar_old.process_uv_image(uv_image),
+            'uv_image': uv_image,
+            'uv_vector': self.hmar_old.process_uv_image(uv_image),
             'pose_smpl': model_out['pred_smpl_params'],
-            'pred_cam':  model_out['pred_cam'],
+            'pred_cam': model_out['pred_cam'],
         }
         return out
+
 
 class HMR2_4dhuman(PHALP):
     def __init__(self, cfg):
@@ -153,9 +203,9 @@ class HMR2_4dhuman(PHALP):
 
     def get_detections(self, image, frame_name, t_, additional_data=None, measurments=None):
         (
-            pred_bbox, pred_bbox, pred_masks, pred_scores, pred_classes, 
+            pred_bbox, pred_bbox, pred_masks, pred_scores, pred_classes,
             ground_truth_track_id, ground_truth_annotations
-        ) =  super().get_detections(image, frame_name, t_, additional_data, measurments)
+        ) = super().get_detections(image, frame_name, t_, additional_data, measurments)
 
         # Pad bounding boxes 
         pred_bbox_padded = expand_bbox_to_aspect_ratio(pred_bbox, self.cfg.expand_bbox_shape)
@@ -164,24 +214,27 @@ class HMR2_4dhuman(PHALP):
             pred_bbox, pred_bbox_padded, pred_masks, pred_scores, pred_classes,
             ground_truth_track_id, ground_truth_annotations
         )
-    
+
 
 @dataclass
 class Human4DConfig(FullConfig):
     # override defaults if needed
-    expand_bbox_shape: Optional[Tuple[int]] = (192,256)
+    expand_bbox_shape: Optional[Tuple[int]] = (192, 256)
     pass
+
 
 cs = ConfigStore.instance()
 cs.store(name="config", node=Human4DConfig)
+
 
 def initialize_config(config_name="config"):
     hydra.initialize(version_base="1.2", config_path=".")
     cfg = hydra.compose(config_name=config_name)
     return cfg
 
+
 def run_4DHumans(
-    scene_dir: str, camera_list: List[int], save_temp: bool=True, verbose: bool=False, fps: int=12
+        scene_dir: str, camera_list: List[int], save_temp: bool = True, verbose: bool = False, fps: int = 12
 ) -> Optional[float]:
     """Main function for running the PHALP tracker.
     
@@ -201,7 +254,7 @@ def run_4DHumans(
     images_dir = os.path.join(scene_dir, 'images')
     assert os.path.exists(images_dir), f"Images directory {images_dir} does not exist"
     temp_dir = os.path.join(scene_dir, 'humanpose', 'temp')
-    
+
     # create a flag to check if the results already exist
     already_done = False
 
@@ -211,16 +264,16 @@ def run_4DHumans(
             logger.info(f"Results for camera {cam_id} already exists at {results_path}")
             already_done = True
             continue
-        
+
         cfg = initialize_config()
-        
+
         cached_video_path = os.path.join(temp_dir, 'raw_videos', f'{cam_id}.mp4')
         if not os.path.exists(cached_video_path):
             logger.info(f"Cached video not found at {cached_video_path}, we will create it")
             os.makedirs(os.path.dirname(cached_video_path), exist_ok=True)
-            
+
             image_paths = sorted(glob(os.path.join(images_dir, f"*_{cam_id}.*")))
-            
+
             # create video
             height, width = cv2.imread(image_paths[0]).shape[:2]
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -230,7 +283,7 @@ def run_4DHumans(
                 out.write(frame)
             out.release()
         cfg.video.source = cached_video_path
-        
+
         output_dir = os.path.join(temp_dir, 'phalp_output')
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -238,10 +291,10 @@ def run_4DHumans(
 
         phalp_tracker = HMR2_4dhuman(cfg)
         phalp_tracker.track()
-        
+
         # reset global hydra
         GlobalHydra.instance().clear()
-    
+
     # remove temporary or useless files
     dirs_to_remove = [
         os.path.join(temp_dir, 'phalp_output', '_DEMO'),
@@ -254,7 +307,7 @@ def run_4DHumans(
     for d in dirs_to_remove:
         if os.path.exists(d):
             os.system(f"rm -rf {d}")
-    
+
     if not verbose:
         # remove the video files generated by PHALP
         files_to_remove = [
@@ -263,7 +316,7 @@ def run_4DHumans(
         for f in files_to_remove:
             if os.path.exists(f):
                 os.remove(f)
-    
+
     # load those pickle files to return
     pred_tracks_allcam = {}
     for i, cam_id in enumerate(camera_list):
@@ -275,7 +328,7 @@ def run_4DHumans(
             pred_tracks_allcam[cam_id] = joblib.load(
                 os.path.join(temp_dir, 'phalp_output', 'results', f'demo_{i}.pkl')
             )
-    
+
     # move and rename saved pickle files if save_temp
     if save_temp and not already_done:
         for i, cam_id in enumerate(camera_list):
@@ -284,5 +337,5 @@ def run_4DHumans(
                 os.path.join(temp_dir, 'phalp_output', f'cam_{cam_id}.pkl')
             )
     os.system(f"rm -rf {os.path.join(temp_dir, 'phalp_output', 'results')}")
-    
+
     return pred_tracks_allcam
