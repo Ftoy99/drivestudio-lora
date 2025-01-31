@@ -184,10 +184,12 @@ class BasicTrainer(nn.Module):
             for name, param in model.named_parameters():
                 print(f"Parameter: {name}, Type: {type(param)}")
                 if isinstance(param, torch.nn.Embedding):
-                    # Add embedding weights to param_groups if not already included
-                    if name not in param_groups:
-                        print(f"Adding embedding {name} to param_groups")
-                        param_groups[name] = param
+                    # Extract the .weight tensor from the embedding and add it to param_groups\
+                    print(f"Adding embedding {name} to param_groups")
+                    param_groups[name] = param.weight
+                else:
+                    # For other types of parameters, add them normally
+                    param_groups[name] = param
 
             # Update param_groups with the new parameters (including embeddings)
             self.param_groups.update(param_groups)
