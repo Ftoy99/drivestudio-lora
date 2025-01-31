@@ -215,13 +215,12 @@ if __name__ == "__main__":
         load_only_model=True
     )
     print("Debug here")
-    print(vars(trainer.models["Background"]))
-    print(trainer.models["Background"]._means)
-    print(trainer.models["Background"]._scales)
-    print(trainer.models["Background"]._quats)
-    print(trainer.models["Background"]._opacities)
-    print(trainer.models["Background"]._features_dc)
-    print(trainer.models["Background"]._features_rest)
+    print(f"Means {trainer.models['Background']._means}")
+    print(f"Scales {trainer.models['Background']._scales}")
+    print(f"Quats {trainer.models['Background']._quats}")
+    print(f"Opacities {trainer.models['Background']._opacities}")
+    print(f"Features_dc {trainer.models['Background']._features_dc}")
+    print(f"Features_rest {trainer.models['Background']._features_rest}")
 
 
     logger.info(
