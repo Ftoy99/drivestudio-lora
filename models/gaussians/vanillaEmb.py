@@ -233,12 +233,12 @@ class VanillaGaussiansEmb(nn.Module):
         
     def get_gaussian_param_groups(self) -> Dict[str, List[nn.Embedding]]:
         return {
-            self.class_prefix+"xyz": [self._means],
-            self.class_prefix+"sh_dc": [self._features_dc],
-            self.class_prefix+"sh_rest": [self._features_rest],
-            self.class_prefix+"opacity": [self._opacities],
-            self.class_prefix+"scaling": [self._scales],
-            self.class_prefix+"rotation": [self._quats],
+            self.class_prefix+"xyz": [self._means.weight],
+            self.class_prefix+"sh_dc": [self._features_dc.weight],
+            self.class_prefix+"sh_rest": [self._features_rest.weight],
+            self.class_prefix+"opacity": [self._opacities.weight],
+            self.class_prefix+"scaling": [self._scales.weight],
+            self.class_prefix+"rotation": [self._quats.weight],
         }
     
     def get_param_groups(self) -> Dict[str, List[nn.Embedding]]:
