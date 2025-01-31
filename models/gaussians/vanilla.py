@@ -77,47 +77,32 @@ class VanillaGaussians(nn.Module):
         return self.ctrl_cfg.sh_degree
 
     def create_from_pcd(self, init_means: torch.Tensor, init_colors: torch.Tensor) -> None:
-        # Use embeddings instead of Parameters
-        self._means = nn.Embedding(init_means.size(0), init_means.size(1))
-        self._means.weight.data.copy_(init_means)  # Initialize the embedding weights with init_means
-
-        distances, _ = k_nearest_sklearn(self._means.weight.data, 3)
+        self._means = Parameter(init_means)
+        
+        distances, _ = k_nearest_sklearn(self._means.data, 3)
         distances = torch.from_numpy(distances)
+        # find the average of the three nearest neighbors for each point and use that as the scale
         avg_dist = distances.mean(dim=-1, keepdim=True).to(self.device)
-
         if self.ball_gaussians:
-            self._scales = nn.Embedding(avg_dist.size(0), 1)
-            self._scales.weight.data.copy_(torch.log(avg_dist.repeat(1, 1)))
+            self._scales = Parameter(torch.log(avg_dist.repeat(1, 1)))
         else:
             if self.gaussian_2d:
-                self._scales = nn.Embedding(avg_dist.size(0), 2)
-                self._scales.weight.data.copy_(torch.log(avg_dist.repeat(1, 2)))
+                self._scales = Parameter(torch.log(avg_dist.repeat(1, 2)))
             else:
-                self._scales = nn.Embedding(avg_dist.size(0), 3)
-                self._scales.weight.data.copy_(torch.log(avg_dist.repeat(1, 3)))
-
-        self._quats = nn.Embedding(self.num_points, 4)  # Assuming 4 quaternion values per point
-        self._quats.weight.data.copy_(random_quat_tensor(self.num_points).to(self.device))
-
+                self._scales = Parameter(torch.log(avg_dist.repeat(1, 3)))
+        self._quats = Parameter(random_quat_tensor(self.num_points).to(self.device))
         dim_sh = num_sh_bases(self.sh_degree)
 
-        fused_color = RGB2SH(init_colors) # float range [0, 1]
+        fused_color = RGB2SH(init_colors) # float range [0, 1] 
         shs = torch.zeros((fused_color.shape[0], dim_sh, 3)).float().to(self.device)
         if self.sh_degree > 0:
             shs[:, 0, :3] = fused_color
             shs[:, 1:, 3:] = 0.0
         else:
             shs[:, 0, :3] = torch.logit(init_colors, eps=1e-10)
-        self._features_dc = nn.Embedding(self.num_points, shs.shape[2], device=self.device)
-        self._features_rest = nn.Embedding(self.num_points, shs.shape[2], device=self.device)
-        self._opacities = nn.Embedding(self.num_points, 1, device=self.device)
-
-        # Copy the values from shs into the embeddings
-        self._features_dc.weight.data.copy_(shs[:, 0, :])  # For _features_dc, use the first column of shs
-        self._features_rest.weight.data.copy_(shs[:, 1:, :])  # For _features_rest, use the remaining columns of shs
-
-        # Initialize _opacities with logit values
-        self._opacities.weight.data.copy_(torch.logit(0.1 * torch.ones(self.num_points, 1, device=self.device)))
+        self._features_dc = Parameter(shs[:, 0, :])
+        self._features_rest = Parameter(shs[:, 1:, :])
+        self._opacities = Parameter(torch.logit(0.1 * torch.ones(self.num_points, 1, device=self.device)))
         
     @property
     def colors(self):
@@ -205,7 +190,7 @@ class VanillaGaussians(nn.Module):
                 self.max_2Dsize[full_mask], newradii / float(last_size)
             )
         
-    def get_gaussian_param_groups(self) -> Dict[str, List[nn.Embedding]]:
+    def get_gaussian_param_groups(self) -> Dict[str, List[Parameter]]:
         return {
             self.class_prefix+"xyz": [self._means],
             self.class_prefix+"sh_dc": [self._features_dc],
@@ -215,7 +200,7 @@ class VanillaGaussians(nn.Module):
             self.class_prefix+"rotation": [self._quats],
         }
     
-    def get_param_groups(self) -> Dict[str, List[nn.Embedding]]:
+    def get_param_groups(self) -> Dict[str, List[Parameter]]:
         return self.get_gaussian_param_groups()
 
     def refinement_after(self, step, optimizer: torch.optim.Optimizer) -> None:
@@ -267,32 +252,14 @@ class VanillaGaussians(nn.Module):
                     dup_scales,
                     dup_quats,
                 ) = self.dup_gaussians(dups)
-
-                # Embedding Initialization
-                self._means = nn.Embedding(self.num_points + split_means.size(0) + dup_means.size(0),
-                                           split_means.size(1), device=self.device)
-                self._features_dc = nn.Embedding(self.num_points + split_feature_dc.size(0) + dup_feature_dc.size(0),
-                                                 split_feature_dc.size(1), device=self.device)
-                self._features_rest = nn.Embedding(
-                    self.num_points + split_feature_rest.size(0) + dup_feature_rest.size(0), split_feature_rest.size(1),
-                    device=self.device)
-                self._opacities = nn.Embedding(self.num_points + split_opacities.size(0) + dup_opacities.size(0), 1,
-                                               device=self.device)
-                self._scales = nn.Embedding(self.num_points + split_scales.size(0) + dup_scales.size(0),
-                                            split_scales.size(1), device=self.device)
-                self._quats = nn.Embedding(self.num_points + split_quats.size(0) + dup_quats.size(0),
-                                           split_quats.size(1), device=self.device)
-
-                # Copy the concatenated data into the embeddings
-                self._means.weight.data.copy_(torch.cat([self._means.weight.data, split_means, dup_means], dim=0))
-                self._features_dc.weight.data.copy_(
-                    torch.cat([self._features_dc.weight.data, split_feature_dc, dup_feature_dc], dim=0))
-                self._features_rest.weight.data.copy_(
-                    torch.cat([self._features_rest.weight.data, split_feature_rest, dup_feature_rest], dim=0))
-                self._opacities.weight.data.copy_(
-                    torch.cat([self._opacities.weight.data, split_opacities, dup_opacities], dim=0))
-                self._scales.weight.data.copy_(torch.cat([self._scales.weight.data, split_scales, dup_scales], dim=0))
-                self._quats.weight.data.copy_(torch.cat([self._quats.weight.data, split_quats, dup_quats], dim=0))
+                
+                self._means = Parameter(torch.cat([self._means.detach(), split_means, dup_means], dim=0))
+                # self.colors_all = Parameter(torch.cat([self.colors_all.detach(), split_colors, dup_colors], dim=0))
+                self._features_dc = Parameter(torch.cat([self._features_dc.detach(), split_feature_dc, dup_feature_dc], dim=0))
+                self._features_rest = Parameter(torch.cat([self._features_rest.detach(), split_feature_rest, dup_feature_rest], dim=0))
+                self._opacities = Parameter(torch.cat([self._opacities.detach(), split_opacities, dup_opacities], dim=0))
+                self._scales = Parameter(torch.cat([self._scales.detach(), split_scales, dup_scales], dim=0))
+                self._quats = Parameter(torch.cat([self._quats.detach(), split_quats, dup_quats], dim=0))
                 
                 # append zeros to the max_2Dsize tensor
                 self.max_2Dsize = torch.cat(
@@ -352,26 +319,14 @@ class VanillaGaussians(nn.Module):
                 # cull big screen space
                 assert self.max_2Dsize is not None
                 culls = culls | (self.max_2Dsize > self.ctrl_cfg.cull_screen_size).squeeze()
-        import torch
-        import torch.nn as nn
+        self._means = Parameter(self._means[~culls].detach())
+        self._scales = Parameter(self._scales[~culls].detach())
+        self._quats = Parameter(self._quats[~culls].detach())
+        # self.colors_all = Parameter(self.colors_all[~culls].detach())
+        self._features_dc = Parameter(self._features_dc[~culls].detach())
+        self._features_rest = Parameter(self._features_rest[~culls].detach())
+        self._opacities = Parameter(self._opacities[~culls].detach())
 
-        # Assuming `self.num_points` is the total number of points, and `culls` is a boolean mask tensor
-        # Initialize embeddings with appropriate size based on culls mask filtering
-        self._means = nn.Embedding(self.num_points - culls.sum(), self._means.size(1), device=self.device)
-        self._scales = nn.Embedding(self.num_points - culls.sum(), self._scales.size(1), device=self.device)
-        self._quats = nn.Embedding(self.num_points - culls.sum(), self._quats.size(1), device=self.device)
-        self._features_dc = nn.Embedding(self.num_points - culls.sum(), self._features_dc.size(1), device=self.device)
-        self._features_rest = nn.Embedding(self.num_points - culls.sum(), self._features_rest.size(1),
-                                           device=self.device)
-        self._opacities = nn.Embedding(self.num_points - culls.sum(), 1, device=self.device)
-
-        # After embedding initialization, copy the filtered data into the embeddings
-        self._means.weight.data.copy_(self._means.weight.data[~culls])
-        self._scales.weight.data.copy_(self._scales.weight.data[~culls])
-        self._quats.weight.data.copy_(self._quats.weight.data[~culls])
-        self._features_dc.weight.data.copy_(self._features_dc.weight.data[~culls])
-        self._features_rest.weight.data.copy_(self._features_rest.weight.data[~culls])
-        self._opacities.weight.data.copy_(self._opacities.weight.data[~culls])
         print(f"     Cull: {n_bef - self.num_points}")
         return culls
 
@@ -495,29 +450,16 @@ class VanillaGaussians(nn.Module):
         if max_s_square_reg is not None and not self.ball_gaussians:
             loss_dict["max_s_square"] = torch.mean((self.get_scaling.max(dim=1).values) ** 2) * max_s_square_reg.w
         return loss_dict
-
+    
     def load_state_dict(self, state_dict: Dict, **kwargs) -> str:
         N = state_dict["_means"].shape[0]
-
-        # Replace Parameters with Embeddings and initialize them
-        self._means = nn.Embedding(N, state_dict["_means"].shape[1], device=self.device)
-        self._scales = nn.Embedding(N, state_dict["_scales"].shape[1], device=self.device)
-        self._quats = nn.Embedding(N, state_dict["_quats"].shape[1], device=self.device)
-        self._features_dc = nn.Embedding(N, state_dict["_features_dc"].shape[1], device=self.device)
-        self._features_rest = nn.Embedding(N, state_dict["_features_rest"].shape[1], device=self.device)
-        self._opacities = nn.Embedding(N, state_dict["_opacities"].shape[1], device=self.device)
-
-        # Copy the weights from state_dict into the embeddings
-        self._means.weight.data.copy_(state_dict["_means"])
-        self._scales.weight.data.copy_(state_dict["_scales"])
-        self._quats.weight.data.copy_(state_dict["_quats"])
-        self._features_dc.weight.data.copy_(state_dict["_features_dc"])
-        self._features_rest.weight.data.copy_(state_dict["_features_rest"])
-        self._opacities.weight.data.copy_(state_dict["_opacities"])
-
-        # Call the base class' load_state_dict (if needed)
+        self._means = Parameter(torch.zeros((N,) + self._means.shape[1:], device=self.device))
+        self._scales = Parameter(torch.zeros((N,) + self._scales.shape[1:], device=self.device))
+        self._quats = Parameter(torch.zeros((N,) + self._quats.shape[1:], device=self.device))
+        self._features_dc = Parameter(torch.zeros((N,) + self._features_dc.shape[1:], device=self.device))
+        self._features_rest = Parameter(torch.zeros((N,) + self._features_rest.shape[1:], device=self.device))
+        self._opacities = Parameter(torch.zeros((N,) + self._opacities.shape[1:], device=self.device))
         msg = super().load_state_dict(state_dict, **kwargs)
-
         return msg
     
     def export_gaussians_to_ply(self, alpha_thresh: float) -> Dict:
