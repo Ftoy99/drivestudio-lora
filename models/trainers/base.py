@@ -179,6 +179,7 @@ class BasicTrainer(nn.Module):
         self.param_groups = {}
         for class_name, model in self.models.items():
             self.param_groups.update(model.get_param_groups())
+            print(self.param_groups)
 
         groups = []
         lr_schedulers = {}
