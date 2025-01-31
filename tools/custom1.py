@@ -225,6 +225,7 @@ if __name__ == "__main__":
     print(f"Features_rest {trainer.models['Background']._features_rest}")
 
     for layer in trainer.models:
+        print(f"Layer {layer}")
         for name, param in trainer.models[layer].named_parameters():
             print(f"og {name}: requires_grad={param.requires_grad}")
 
