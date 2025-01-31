@@ -76,9 +76,12 @@ class VanillaGaussians(nn.Module):
     def sh_degree(self):
         return self.ctrl_cfg.sh_degree
 
+    import torch
+    import torch.nn as nn
+
     def create_from_pcd(self, init_means: torch.Tensor, init_colors: torch.Tensor) -> None:
         # Create embedding for _means
-        self._means = nn.Embedding(init_means.size(0), init_means.size(1))
+        self._means = nn.Embedding(init_means.size(0), init_means.size(1), device=self.device)
         self._means.weight.data.copy_(init_means)
 
         # Calculate distances and average distance for scales
@@ -88,18 +91,18 @@ class VanillaGaussians(nn.Module):
 
         # Create embedding for _scales
         if self.ball_gaussians:
-            self._scales = nn.Embedding(avg_dist.size(0), 1)  # Adjust size for embedding
+            self._scales = nn.Embedding(avg_dist.size(0), 1, device=self.device)  # Adjust size for embedding
             self._scales.weight.data.copy_(torch.log(avg_dist.repeat(1, 1)))
         else:
             if self.gaussian_2d:
-                self._scales = nn.Embedding(avg_dist.size(0), 2)
+                self._scales = nn.Embedding(avg_dist.size(0), 2, device=self.device)
                 self._scales.weight.data.copy_(torch.log(avg_dist.repeat(1, 2)))
             else:
-                self._scales = nn.Embedding(avg_dist.size(0), 3)
+                self._scales = nn.Embedding(avg_dist.size(0), 3, device=self.device)
                 self._scales.weight.data.copy_(torch.log(avg_dist.repeat(1, 3)))
 
         # Create embedding for _quats (random quaternion tensor)
-        self._quats = nn.Embedding(self.num_points, 4)  # 4-dimensional quaternions
+        self._quats = nn.Embedding(self.num_points, 4, device=self.device)  # 4-dimensional quaternions
         self._quats.weight.data.copy_(random_quat_tensor(self.num_points).to(self.device))
 
         # SH-based features for color
@@ -114,20 +117,14 @@ class VanillaGaussians(nn.Module):
             shs[:, 0, :3] = torch.logit(init_colors, eps=1e-10)
 
         # Create embedding for _features_dc and _features_rest
-        self._features_dc = nn.Embedding(shs[:, 0, :].size(0), shs[:, 0, :].size(1))
+        self._features_dc = nn.Embedding(shs[:, 0, :].size(0), shs[:, 0, :].size(1), device=self.device)
         self._features_dc.weight.data.copy_(shs[:, 0, :])
 
-        print(shs.shape)
-        print(shs[:, 1:, :].size(0))
-        print(shs[:, 1:, :].size(1))
-        print(shs[:, 1:, :])
-
-
-        self._features_rest = nn.Embedding(shs[:, 1:, :].size(0), shs[:, 1:, :].size(1))
+        self._features_rest = nn.Embedding(shs[:, 1:, :].size(0), shs[:, 1:, :].size(1), device=self.device)
         self._features_rest.weight.data.copy_(shs[:, 1:, :])
 
         # Create embedding for _opacities
-        self._opacities = nn.Embedding(self.num_points, 1)
+        self._opacities = nn.Embedding(self.num_points, 1, device=self.device)
         self._opacities.weight.data.copy_(torch.logit(0.1 * torch.ones(self.num_points, 1, device=self.device)))
 
     @property
