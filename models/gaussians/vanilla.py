@@ -59,18 +59,27 @@ class VanillaGaussians(nn.Module):
         # init models
         self.xys_grad_norm = None
         self.max_2Dsize = None
-        self._means = torch.zeros(1, 3, device=self.device)
+        self._means = nn.Embedding(1, 3)
+        self._means.weight.data.zero_()
         if self.ball_gaussians:
-            self._scales = torch.zeros(1, 1, device=self.device)
+            self._scales = nn.Embedding(1, 1)
+            self._scales.weight.data.zero_()
         else:
             if self.gaussian_2d:
-                self._scales = torch.zeros(1, 2, device=self.device)
+                self._scales = nn.Embedding(1, 2)
+                self._scales.weight.data.zero_()
             else:
-                self._scales = torch.zeros(1, 3, device=self.device)
-        self._quats = torch.zeros(1, 4, device=self.device)
-        self._opacities = torch.zeros(1, 1, device=self.device)
-        self._features_dc = torch.zeros(1, 3, device=self.device)
-        self._features_rest = torch.zeros(1, num_sh_bases(self.sh_degree) - 1, 3, device=self.device)
+                self._scales = nn.Embedding(1, 3)
+                self._scales.weight.data.zero_()
+
+        self._quats = nn.Embedding(1, 4)
+        self._opacities = nn.Embedding(1, 1)
+        self._features_dc = nn.Embedding(1, 3)
+        self._features_rest = nn.Embedding(1, num_sh_bases(self.sh_degree) - 1)
+        self._quats.weight.data.zero_()
+        self._opacities.weight.data.zero_()
+        self._features_dc.weight.data.zero_()
+        self._features_rest.weight.data.zero_()
         
     @property
     def sh_degree(self):
