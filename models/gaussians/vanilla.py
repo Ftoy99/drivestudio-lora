@@ -120,6 +120,11 @@ class VanillaGaussians(nn.Module):
         self._features_dc = nn.Embedding(shs[:, 0, :].size(0), shs[:, 0, :].size(1), device=self.device)
         self._features_dc.weight.data.copy_(shs[:, 0, :])
 
+        print(shs.shape)
+        print(shs[:, 1:, :].size(0))
+        print(shs[:, 1:, :].size(1))
+        print(shs[:, 1:, :].shape)
+
         self._features_rest = nn.Embedding(shs[:, 1:, :].size(0), shs[:, 1:, :].size(1), device=self.device)
         self._features_rest.weight.data.copy_(shs[:, 1:, :])
 
