@@ -234,7 +234,7 @@ if __name__ == "__main__":
         lora_alpha=8,
         init_lora_weights="gaussian",
         target_modules=["_means", "_scales", "_quats", "_opacities", "_features_dc", "_features_rest"],
-        task_type=TaskType.FEATURE_EXTRACTION
+        task_type=TaskType.SEQ_2_SEQ_LM
     )
     # Apply LoRA
     lora_model = get_peft_model(trainer.models['Background'], lora_config)
