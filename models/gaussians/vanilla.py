@@ -141,9 +141,6 @@ class VanillaGaussians(nn.Module):
         self._opacities = nn.Embedding(self.num_points, 1, device=self.device)
         self._opacities.weight.data.copy_(torch.logit(0.1 * torch.ones(self.num_points, 1, device=self.device)))
 
-
-
-
     @property
     def colors(self):
         if self.sh_degree > 0:
@@ -159,8 +156,9 @@ class VanillaGaussians(nn.Module):
 
     @property
     def num_points(self):
-        print(f"num points : {self._means.weight.shape[0]}")
-        return self._means.weight.shape[0]
+        num_points = self._means.weight.shape[0]
+        print(f"Number of points: {num_points}")
+        return num_points
 
     @property
     def get_scaling(self):
