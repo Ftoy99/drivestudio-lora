@@ -188,7 +188,7 @@ class BasicTrainer(nn.Module):
                     # Add embedding weights to param_groups
                     print(f"Adding {name} to param_groups")
                     param_groups[name] = param
-                self.param_groups.update(param_groups)
+            self.param_groups.update(param_groups)
 
 
         groups = []
