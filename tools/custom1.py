@@ -208,7 +208,7 @@ if __name__ == "__main__":
                  test_set_indices=dataset.test_timesteps,
                  scene_aabb=dataset.get_aabb().reshape(2, 3),
                  device=device)
-
+    print("trainer")
     print(trainer)
 
     # Resume from checkpoint
