@@ -214,8 +214,8 @@ if __name__ == "__main__":
         ckpt_path=args.resume_from,
         load_only_model=True
     )
-    print("Variables")
-    print(vars(trainer))
+    print("Debug here")
+    print(vars(trainer.models["Background"]))
 
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
