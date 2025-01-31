@@ -175,22 +175,21 @@ class BasicTrainer(nn.Module):
         raise NotImplementedError("Please implement the _init_models function")
 
     def initialize_optimizer(self) -> None:
-        # get param groups first
         self.param_groups = {}
         for class_name, model in self.models.items():
-            print(f"class name {class_name} model: {model}")
-
-            # Get the parameter groups from the model
+            # Add model parameters from get_param_groups
             param_groups = model.get_param_groups()
+
             # Check if the model has embedding layers and include their parameters
             for name, param in model.named_parameters():
-                print(f"Adding {name} to param_groups {param}")
                 if isinstance(param, torch.nn.Embedding):
-                    # Add embedding weights to param_groups
-                    print(f"Adding {name} to param_groups")
-                    param_groups[name] = param
-            self.param_groups.update(param_groups)
+                    # Add embedding weights to param_groups if not already included
+                    if name not in param_groups:
+                        print(f"Adding embedding {name} to param_groups")
+                        param_groups[name] = param
 
+            # Update param_groups with the new parameters (including embeddings)
+            self.param_groups.update(param_groups)
 
         groups = []
         lr_schedulers = {}
@@ -682,9 +681,7 @@ class BasicTrainer(nn.Module):
         # load model
         model_state_dict = state_dict.pop("models")
         for class_name in self.models.keys():
-            print(f"Class {class_name}")
             model = self.models[class_name]
-            print(f"model {model}")
             model.step = step
             if class_name not in model_state_dict:
                 if class_name in self.gaussian_classes:
