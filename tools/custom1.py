@@ -236,13 +236,13 @@ if __name__ == "__main__":
         task_type=TaskType.SEQ_2_SEQ_LM
     )
     # Apply LoRA
-    lora_model = get_peft_model(trainer.models, lora_config)
+    modelsToMakeLora = []
+    for model in trainer.models:
+        modelsToMakeLora.append(get_peft_model(trainer.models[model], lora_config))
 
-    # Print the model structure
-    print(lora_model)
-
-    for name, param in lora_model.named_parameters():
-        print(f"{name}: requires_grad={param.requires_grad}")
+    for lora_model in modelsToMakeLora:
+        for name, param in lora_model.named_parameters():
+            print(f"{name}: requires_grad={param.requires_grad}")
 
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
