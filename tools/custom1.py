@@ -216,6 +216,13 @@ if __name__ == "__main__":
     )
     print("Debug here")
     print(vars(trainer.models["Background"]))
+    print(trainer.models["Background"]._means)
+    print(trainer.models["Background"]._scales)
+    print(trainer.models["Background"]._quats)
+    print(trainer.models["Background"]._opacities)
+    print(trainer.models["Background"]._features_dc)
+    print(trainer.models["Background"]._features_rest)
+
 
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
