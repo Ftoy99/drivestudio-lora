@@ -10,7 +10,7 @@ import argparse
 import torch
 from datasets.driving_dataset import DrivingDataset
 from utils.misc import import_str
-from models.trainers import BasicTrainer
+from models.trainers import BasicTrainer, MultiTrainer
 from models.video_utils import (
     render_images,
     save_videos,
@@ -200,17 +200,14 @@ if __name__ == "__main__":
     # build dataset
     dataset = DrivingDataset(data_cfg=cfg.data)
 
-    # setup trainer
-    trainer = import_str(cfg.trainer.type)(
-        **cfg.trainer,
-        num_timesteps=dataset.num_img_timesteps,
-        model_config=cfg.model,
-        num_train_images=len(dataset.train_image_set),
-        num_full_images=len(dataset.full_image_set),
-        test_set_indices=dataset.test_timesteps,
-        scene_aabb=dataset.get_aabb().reshape(2, 3),
-        device=device
-    )
+    trainer = MultiTrainer(**cfg.trainer,
+                 num_timesteps=dataset.num_img_timesteps,
+                 model_config=cfg.model,
+                 num_train_images=len(dataset.train_image_set),
+                 num_full_images=len(dataset.full_image_set),
+                 test_set_indices=dataset.test_timesteps,
+                 scene_aabb=dataset.get_aabb().reshape(2, 3),
+                 device=device)
 
     # Resume from checkpoint
     trainer.resume_from_checkpoint(
