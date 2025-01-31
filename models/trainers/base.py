@@ -182,6 +182,7 @@ class BasicTrainer(nn.Module):
 
             # Check if the model has embedding layers and include their parameters
             for name, param in model.named_parameters():
+                print(f"Parameter: {name}, Type: {type(param)}")
                 if isinstance(param, torch.nn.Embedding):
                     # Add embedding weights to param_groups if not already included
                     if name not in param_groups:
