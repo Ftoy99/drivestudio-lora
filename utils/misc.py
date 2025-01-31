@@ -21,6 +21,7 @@ def import_str(string: str):
     """
     # From https://github.com/CompVis/taming-transformers
     module, cls = string.rsplit(".", 1)
+    print(f"Importing module {module} and cls {cls}")
     return getattr(importlib.import_module(module, package=None), cls)
 
 def export_points_to_ply(
