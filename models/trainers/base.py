@@ -178,8 +178,17 @@ class BasicTrainer(nn.Module):
         # get param groups first
         self.param_groups = {}
         for class_name, model in self.models.items():
-            print(f"class name {class_name} model : {model}")
-            self.param_groups.update(model.get_param_groups())
+            print(f"class name {class_name} model: {model}")
+
+            # Get the parameter groups from the model
+            param_groups = model.get_param_groups()
+            # Check if the model has embedding layers and include their parameters
+            for name, param in model.named_parameters():
+                if isinstance(param, torch.nn.Embedding):
+                    # Add embedding weights to param_groups
+                    print(f"Adding {name} to param_groups")
+                    param_groups[name] = param
+                self.param_groups.update(param_groups)
 
 
         groups = []
