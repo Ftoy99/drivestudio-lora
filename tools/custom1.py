@@ -224,6 +224,9 @@ if __name__ == "__main__":
     print(f"Features_dc {trainer.models['Background']._features_dc}")
     print(f"Features_rest {trainer.models['Background']._features_rest}")
 
+    for name, param in trainer.models['Background'].named_parameters():
+        print(f"og {name}: requires_grad={param.requires_grad}")
+
     from peft import LoraConfig, TaskType, get_peft_model
 
     lora_config = LoraConfig(
