@@ -181,7 +181,7 @@ class BasicTrainer(nn.Module):
             param_groups = model.get_param_groups()
 
             # Check if the model has embedding layers and include their parameters
-            for name, param in model.named_parameters():
+            for name, param in param_groups:
                 print(f"Parameter: {name}, Type: {type(param)}")
                 if isinstance(param, torch.nn.Embedding):
                     # Extract the .weight tensor from the embedding and add it to param_groups\
