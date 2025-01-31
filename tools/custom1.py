@@ -224,8 +224,9 @@ if __name__ == "__main__":
     print(f"Features_dc {trainer.models['Background']._features_dc}")
     print(f"Features_rest {trainer.models['Background']._features_rest}")
 
-    for name, param in trainer.models['Background'].named_parameters():
-        print(f"og {name}: requires_grad={param.requires_grad}")
+    for layer in trainer.models:
+        for name, param in trainer.models[layer].named_parameters():
+            print(f"og {name}: requires_grad={param.requires_grad}")
 
     from peft import LoraConfig, TaskType, get_peft_model
 
@@ -233,16 +234,17 @@ if __name__ == "__main__":
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
+        target_modules=["_means", "_scales", "_quats", "_opacities", "_features_dc", "_features_rest"],
         task_type=TaskType.SEQ_2_SEQ_LM
     )
     # Apply LoRA
-    modelsToMakeLora = []
-    for model in trainer.models:
-        modelsToMakeLora.append(get_peft_model(trainer.models[model], lora_config))
+    lora_model = get_peft_model(trainer.models, lora_config)
 
-    for lora_model in modelsToMakeLora:
-        for name, param in lora_model.named_parameters():
-            print(f"{name}: requires_grad={param.requires_grad}")
+    # Print the model structure
+    print(lora_model)
+
+    for name, param in lora_model.named_parameters():
+        print(f"{name}: requires_grad={param.requires_grad}")
 
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
