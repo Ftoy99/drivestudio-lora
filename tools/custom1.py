@@ -9,6 +9,7 @@ import argparse
 
 import torch
 from datasets.driving_dataset import DrivingDataset
+from models.gaussians import VanillaGaussians
 from utils.misc import import_str
 from models.trainers import BasicTrainer, MultiTrainer
 from models.video_utils import (
@@ -214,7 +215,8 @@ if __name__ == "__main__":
         ckpt_path=args.resume_from,
         load_only_model=True
     )
-    print("Debug here")
+
+    #Original
     print(f"Means {trainer.models['Background']._means}")
     print(f"Scales {trainer.models['Background']._scales}")
     print(f"Quats {trainer.models['Background']._quats}")
@@ -222,6 +224,23 @@ if __name__ == "__main__":
     print(f"Features_dc {trainer.models['Background']._features_dc}")
     print(f"Features_rest {trainer.models['Background']._features_rest}")
 
+    from peft import LoraConfig, TaskType, get_peft_model
+
+    lora_config = LoraConfig(
+        r=8,
+        lora_alpha=8,
+        init_lora_weights="gaussian",
+        target_modules=["_means", "_scales", "_quats", "_opacities", "_features_dc", "_features_rest"],
+        task_type=TaskType.FEATURE_EXTRACTION
+    )
+    # Apply LoRA
+    lora_model = get_peft_model(trainer.models['Background'], lora_config)
+
+    # Print the model structure
+    print(lora_model)
+
+    for name, param in lora_model.named_parameters():
+        print(f"{name}: requires_grad={param.requires_grad}")
 
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
