@@ -116,9 +116,18 @@ class VanillaGaussians(nn.Module):
         else:
             shs[:, 0, :3] = torch.logit(init_colors, eps=1e-10)
 
+        # self._features_dc = Parameter(shs[:, 0, :])
+        # self._features_rest = Parameter(shs[:, 1:, :])
+        # self._opacities = Parameter(torch.logit(0.1 * torch.ones(self.num_points, 1, device=self.device)))
+
         # Create embedding for _features_dc and _features_rest
         self._features_dc = nn.Embedding(shs[:, 0, :].size(0), shs[:, 0, :].size(1), device=self.device)
         self._features_dc.weight.data.copy_(shs[:, 0, :])
+
+        print(shs.shape)
+        print(shs[:, 0:, :].size(0))
+        print(shs[:, 0:, :].size(1))
+        print(shs[:, 0:, :].shape)
 
         print(shs.shape)
         print(shs[:, 1:, :].size(0))
@@ -131,6 +140,9 @@ class VanillaGaussians(nn.Module):
         # Create embedding for _opacities
         self._opacities = nn.Embedding(self.num_points, 1, device=self.device)
         self._opacities.weight.data.copy_(torch.logit(0.1 * torch.ones(self.num_points, 1, device=self.device)))
+
+
+
 
     @property
     def colors(self):
