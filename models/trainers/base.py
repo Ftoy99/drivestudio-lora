@@ -197,6 +197,7 @@ class BasicTrainer(nn.Module):
         groups = []
         lr_schedulers = {}
         for params_name, params in self.param_groups.items():
+            print(f"params_name {params_name}")
             class_name = params_name.split("#")[0]
             component_name = params_name.split("#")[1]
             class_cfg = self.model_config.get(class_name)
