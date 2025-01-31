@@ -209,6 +209,8 @@ if __name__ == "__main__":
                  scene_aabb=dataset.get_aabb().reshape(2, 3),
                  device=device)
 
+    print(trainer)
+
     # Resume from checkpoint
     trainer.resume_from_checkpoint(
         ckpt_path=args.resume_from,
