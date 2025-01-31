@@ -70,7 +70,7 @@ trainer:
 # ------------- Model ------------ #
 model:
   Background:
-    type: models.gaussians.VanillaGaussians
+    type: models.gaussians.VanillaGaussiansEmb
     init:
       from_lidar:
         num_samples: 800_000
