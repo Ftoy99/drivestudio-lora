@@ -201,23 +201,22 @@ if __name__ == "__main__":
     dataset = DrivingDataset(data_cfg=cfg.data)
 
     trainer = MultiTrainer(**cfg.trainer,
-                 num_timesteps=dataset.num_img_timesteps,
-                 model_config=cfg.model,
-                 num_train_images=len(dataset.train_image_set),
-                 num_full_images=len(dataset.full_image_set),
-                 test_set_indices=dataset.test_timesteps,
-                 scene_aabb=dataset.get_aabb().reshape(2, 3),
-                 device=device)
-    print("trainer")
-    print(trainer)
+                           num_timesteps=dataset.num_img_timesteps,
+                           model_config=cfg.model,
+                           num_train_images=len(dataset.train_image_set),
+                           num_full_images=len(dataset.full_image_set),
+                           test_set_indices=dataset.test_timesteps,
+                           scene_aabb=dataset.get_aabb().reshape(2, 3),
+                           device=device)
 
     # Resume from checkpoint
     trainer.resume_from_checkpoint(
         ckpt_path=args.resume_from,
         load_only_model=True
     )
-    print("trainer after weights")
-    print(trainer)
+    print("Variables")
+    print(vars(trainer))
+
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
     )
