@@ -128,16 +128,29 @@ class VanillaGaussians(nn.Module):
         # print(shs[:, 1:, :].size(1))
         # print(shs[:, 1:, :].shape)
 
+        print(shs[:, 0:, :].size(0))
+        print(shs[:, 0:, :].size(1))
+        print(shs[:, 0:, :].shape)
         # Create embedding for _features_dc and _features_rest
         self._features_dc = nn.Embedding(shs[:, 0, :].size(0), shs[:, 0, :].size(1), device=self.device)
+        print(shs[:, 0:, :].size(0))
+        print(shs[:, 0:, :].size(1))
+        print(shs[:, 0:, :].shape)
+        self._features_rest = nn.Embedding(shs[:, 0:, :].size(0), shs[:, 0:, :].size(1), device=self.device)
+        print(shs[:, 0:, :].size(0))
+        print(shs[:, 0:, :].size(1))
+        print(shs[:, 0:, :].shape)
         self._features_dc.weight.data.copy_(shs[:, 0, :])
-
+        print(shs[:, 0:, :].size(0))
+        print(shs[:, 0:, :].size(1))
+        print(shs[:, 0:, :].shape)
+        self._features_rest.weight.data.copy_(shs[:, 0:, :])
         print(shs[:, 0:, :].size(0))
         print(shs[:, 0:, :].size(1))
         print(shs[:, 0:, :].shape)
 
-        self._features_rest = nn.Embedding(shs[:, 0:, :].size(0), shs[:, 0:, :].size(1), device=self.device)
-        self._features_rest.weight.data.copy_(shs[:, 0:, :])
+
+
 
         # Create embedding for _opacities
         self._opacities = nn.Embedding(self.num_points, 1, device=self.device)
