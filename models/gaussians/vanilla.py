@@ -150,7 +150,9 @@ class VanillaGaussians(nn.Module):
 
     @property
     def num_points(self):
+        print(f"num points : {self._means.weight.shape[0]}")
         return self._means.weight.shape[0]
+
     @property
     def get_scaling(self):
         if self.ball_gaussians:
