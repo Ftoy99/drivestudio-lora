@@ -448,7 +448,7 @@ class VanillaGaussiansEmb(nn.Module):
         self.filter_mask = filter_mask
 
         # get colors of gaussians
-        colors = torch.cat((self._features_dc.weight[:, None, :], self._features_rest), dim=1)
+        colors = torch.cat((self._features_dc[:, None, :], self._features_rest), dim=1)
         if self.sh_degree > 0:
             viewdirs = self._means.detach() - cam.camtoworlds.data[..., :3, 3]  # (N, 3)
             viewdirs = viewdirs / viewdirs.norm(dim=-1, keepdim=True)
