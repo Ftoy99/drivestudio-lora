@@ -389,24 +389,16 @@ class VanillaGaussiansEmb(nn.Module):
         quats = self._quats.weight[~culls].detach()
         opacities = self._opacities.weight[~culls].detach()
 
-        print(self._means.weight.device)
-        print(self._scales.weight.device)
-        print(self._quats.weight.device)
-        print(self._opacities.weight.device)
-        self._means = nn.Embedding(means.size(0), self._means.weight.size(1))
-        self._scales = nn.Embedding(scales.size(0), self._scales.weight.size(1))
-        self._quats = nn.Embedding(quats.size(0), self._quats.weight.size(1))
-        self._opacities = nn.Embedding(opacities.size(0), self._opacities.weight.size(1))
+        self._means = nn.Embedding(means.size(0), self._means.weight.size(1),device=self.device)
+        self._scales = nn.Embedding(scales.size(0), self._scales.weight.size(1),device=self.device)
+        self._quats = nn.Embedding(quats.size(0), self._quats.weight.size(1),device=self.device)
+        self._opacities = nn.Embedding(opacities.size(0), self._opacities.weight.size(1),device=self.device)
         # self.colors_all = nn.Embedding(self.colors_all.weight[~culls].size(0), self.colors_all.size(1))
 
         self._means.weight.data.copy_(means)
         self._scales.weight.data.copy_(scales)
         self._quats.weight.data.copy_(quats)
         self._opacities.weight.data.copy_(opacities)
-        print(self._means.weight.device)
-        print(self._scales.weight.device)
-        print(self._quats.weight.device)
-        print(self._opacities.weight.device)
 
         # self.colors_all.weight.data.copy_(self.colors_all.weight[~culls].detach())
 
@@ -542,11 +534,10 @@ class VanillaGaussiansEmb(nn.Module):
         N = state_dict["_means"].shape[0]
 
         # Create the embeddings instead of Parameters
-        self._means = nn.Embedding(N, self._means.shape[1])
-        self._scales = nn.Embedding(N, self._scales.shape[1])
-        self._quats = nn.Embedding(N, self._quats.shape[1])
-
-        self._opacities = nn.Embedding(N, self._opacities.shape[1])
+        self._means = nn.Embedding(N, self._means.shape[1],device=self.device)
+        self._scales = nn.Embedding(N, self._scales.shape[1],device=self.device)
+        self._quats = nn.Embedding(N, self._quats.shape[1],device=self.device)
+        self._opacities = nn.Embedding(N, self._opacities.shape[1],device=self.device)
 
         # Load the state dict values into the embeddings
         self._means.weight.data.copy_(state_dict["_means"])
