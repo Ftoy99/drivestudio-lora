@@ -247,6 +247,7 @@ if __name__ == "__main__":
 
     # Print the model structure
     print(f"lora_model {lora_model}")
+    print(f"og {trainer.models['DeformableNodes']}")
 
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
