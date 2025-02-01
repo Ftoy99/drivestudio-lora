@@ -175,31 +175,15 @@ class BasicTrainer(nn.Module):
         raise NotImplementedError("Please implement the _init_models function")
 
     def initialize_optimizer(self) -> None:
+        # get param groups first
         self.param_groups = {}
         for class_name, model in self.models.items():
-            # Add model parameters from get_param_groups
-            param_groups = model.get_param_groups()
-
-            # Check if the model has embedding layers and include their parameters
-            for name, param in param_groups:
-                print(f"Parameter: {name}, Type: {type(param)}")
-                if isinstance(param, torch.nn.Embedding):
-                    # Extract the .weight tensor from the embedding and add it to param_groups\
-                    print(f"Adding embedding {name} to param_groups")
-                    param_groups[name] = param.weight
-                else:
-                    # For other types of parameters, add them normally
-                    param_groups[name] = param
-
-            # Update param_groups with the new parameters (including embeddings)
-            self.param_groups.update(param_groups)
+            print(f"class_name : {class_name} model : {model}")
+            self.param_groups.update(model.get_param_groups())
 
         groups = []
         lr_schedulers = {}
         for params_name, params in self.param_groups.items():
-            print(f"params_name {params_name}")
-        for params_name, params in self.param_groups.items():
-            print(f"params_name {params_name}")
             class_name = params_name.split("#")[0]
             component_name = params_name.split("#")[1]
             class_cfg = self.model_config.get(class_name)
@@ -675,6 +659,14 @@ class BasicTrainer(nn.Module):
         step = state_dict.pop("step")
         self.step = step
         logger.info(f"Loading checkpoint at step {step}")
+
+        # load optimizer and schedulers
+        if "optimizer" in state_dict:
+            loaded_state_optimizers = state_dict.pop("optimizer")
+        # if "schedulers" in state_dict:
+        #     loaded_state_schedulers = state_dict.pop("schedulers")
+        # if "grad_scaler" in state_dict:
+        #     loaded_grad_scaler = state_dict.pop("grad_scaler")
         if not load_only_model:
             raise NotImplementedError("Now only support loading model, \
                 it seems there is no need to load optimizer and schedulers")
