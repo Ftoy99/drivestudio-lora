@@ -241,6 +241,10 @@ if __name__ == "__main__":
     # Apply LoRA
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
 
+    for name, param in lora_model.named_parameters():
+        if "lora_" in name:
+            print(f"LoRA layer: {name}, Trainable: {param.requires_grad}")
+
     # Print the model structure
     print(f"lora_model {lora_model}")
 
