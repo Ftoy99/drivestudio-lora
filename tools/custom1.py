@@ -235,7 +235,7 @@ if __name__ == "__main__":
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
-        target_modules='all-parameters',
+        target_modules=["_means"],
         task_type=TaskType.SEQ_2_SEQ_LM
     )
     # Apply LoRA
