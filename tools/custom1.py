@@ -242,7 +242,7 @@ if __name__ == "__main__":
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
 
     # Print the model structure
-    print(lora_model)
+    print(f"lora_model {lora_model}")
 
     for name, param in lora_model.named_parameters():
         print(f"{name}: requires_grad={param.requires_grad}")
