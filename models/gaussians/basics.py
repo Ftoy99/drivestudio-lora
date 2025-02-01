@@ -197,13 +197,18 @@ def remove_from_optim(optimizer, deleted_mask, param_dict):
 def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
     """adds the parameters to the optimizer"""
     for group_idx, group in enumerate(optimizer.param_groups):
-        print(f"optmizer {group_idx}, {group}")
         name = group["name"]
         if name in param_dict.keys():
             print(f"optmizer {name} in param dict{param_dict.keys()}")
             old_params = group["params"][0]
             new_params = param_dict[name]
             param_state = optimizer.state[old_params]
+
+            # Check if 'exp_avg' exists, if not, initialize it
+            if "exp_avg" not in param_state:
+                print(f"Warning: 'exp_avg' missing for {name}, initializing.")
+                param_state["exp_avg"] = torch.zeros_like(old_params)
+
             repeat_dims = (n,) + tuple(1 for _ in range(param_state["exp_avg"].dim() - 1))
             param_state["exp_avg"] = torch.cat(
                 [param_state["exp_avg"],
