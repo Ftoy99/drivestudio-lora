@@ -224,9 +224,8 @@ if __name__ == "__main__":
     print(f"Features_dc {trainer.models['Background']._features_dc}")
     print(f"Features_rest {trainer.models['Background']._features_rest}")
 
-    for model in trainer.models:
-        print(f"{model}")  # Print class of the model
-
+    for layer_name, model in trainer.models.items():
+        print(f"Layer {layer_name} -> Class: {model}")  # Print class of the model
         for name, param in model.named_parameters():
             print(name, param.shape)
 
