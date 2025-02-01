@@ -367,6 +367,7 @@ class VanillaGaussiansEmb(nn.Module):
         n_bef = self.num_points
         # cull transparent ones
         culls = (self.get_opacity.data < self.ctrl_cfg.cull_alpha_thresh).squeeze()
+        culls.to(self.device)
         if self.step > self.ctrl_cfg.reset_alpha_interval:
             # cull huge ones
             toobigs = (
