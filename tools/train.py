@@ -284,7 +284,7 @@ def main(args):
     if args.resume_from is not None:
         trainer.resume_from_checkpoint(
             ckpt_path=args.resume_from,
-            load_only_model=False
+            load_only_model=True
         )
         logger.info(
             f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
@@ -456,7 +456,7 @@ def main(args):
         if do_save:  
             trainer.save_checkpoint(
                 log_dir=cfg.log_dir,
-                save_only_model=False,
+                save_only_model=True,
                 is_final=step == trainer.num_iters,
             )
         
