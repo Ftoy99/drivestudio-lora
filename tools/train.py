@@ -289,15 +289,6 @@ def main(args):
         logger.info(
             f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
         )
-
-        smplnode_pts_dict = dataset.get_init_smpl_objects(
-            trainer.model_config["SMPLNodes"]["init"]
-        )
-        res = trainer.safe_init_models(
-            model=trainer.models["SMPLNodes"],
-            instance_pts_dict=smplnode_pts_dict
-        )
-        print(f"SMPL RESULT {res}")
         trainer.init_gaussians_from_dataset(dataset=dataset)
     else:
         trainer.init_gaussians_from_dataset(dataset=dataset)
