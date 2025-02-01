@@ -225,10 +225,7 @@ if __name__ == "__main__":
     print(f"Features_rest {trainer.models['Background']._features_rest}")
 
     for layer_name, model in trainer.models.items():
-        print(f"Layer {layer_name} -> Class: {type(model)}")  # Print class of the model
-
-        for param_name, param in model.named_parameters():
-            print(f"  - Param {param_name}: Class={type(param)}, requires_grad={param.requires_grad}")
+        print(f"Layer {layer_name} -> Class: {model}")  # Print class of the model
 
     from peft import LoraConfig, TaskType, get_peft_model
 
