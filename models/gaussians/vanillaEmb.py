@@ -150,7 +150,6 @@ class VanillaGaussiansEmb(nn.Module):
     @property
     def num_points(self):
         num_points = self._means.weight.shape[0]
-        print(f"Number of points: {num_points}")
         return num_points
 
     @property
