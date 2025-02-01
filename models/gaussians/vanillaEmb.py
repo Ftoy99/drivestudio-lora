@@ -382,11 +382,11 @@ class VanillaGaussiansEmb(nn.Module):
         self._features_dc = Parameter(self._features_dc[~culls].detach())
         self._features_rest = Parameter(self._features_rest[~culls].detach())
 
-        self._means = nn.Embedding(self._means.weight[~culls].size(0), self._means.size(1))
-        self._scales = nn.Embedding(self._scales.weight[~culls].size(0), self._scales.size(1))
-        self._quats = nn.Embedding(self._quats.weight[~culls].size(0), self._quats.size(1))
+        self._means = nn.Embedding(self._means[~culls].size(0), self._means.size(1))
+        self._scales = nn.Embedding(self._scales[~culls].size(0), self._scales.size(1))
+        self._quats = nn.Embedding(self._quats[~culls].size(0), self._quats.size(1))
         # self.colors_all = nn.Embedding(self.colors_all.weight[~culls].size(0), self.colors_all.size(1))
-        self._opacities = nn.Embedding(self._opacities.weight[~culls].size(0), self._opacities.size(1))
+        self._opacities = nn.Embedding(self._opacities[~culls].size(0), self._opacities.size(1))
 
         self._means.weight.data.copy_(self._means.weight[~culls].detach())
         self._scales.weight.data.copy_(self._scales.weight[~culls].detach())
