@@ -458,6 +458,8 @@ class VanillaGaussiansEmb(nn.Module):
         # get colors of gaussians
         colors = torch.cat((self._features_dc[:, None, :], self._features_rest), dim=1)
         if self.sh_degree > 0:
+            print(self._means.weight.detach().device)
+            print(cam.camtoworlds.data[..., :3, 3].device)
             viewdirs = self._means.weight.detach() - cam.camtoworlds.data[..., :3, 3]  # (N, 3)
             viewdirs = viewdirs / viewdirs.norm(dim=-1, keepdim=True)
             n = min(self.step // self.ctrl_cfg.sh_degree_interval, self.sh_degree)
