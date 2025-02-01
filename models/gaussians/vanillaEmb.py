@@ -157,26 +157,26 @@ class VanillaGaussiansEmb(nn.Module):
     def get_scaling(self):
         if self.ball_gaussians:
             if self.gaussian_2d:
-                scaling = torch.exp(self._scales).repeat(1, 2)
+                scaling = torch.exp(self._scales.weight).repeat(1, 2)
                 scaling = torch.cat([scaling, torch.zeros_like(scaling[..., :1])], dim=-1)
                 return scaling
             else:
-                return torch.exp(self._scales).repeat(1, 3)
+                return torch.exp(self._scales.weight).repeat(1, 3)
         else:
             if self.gaussian_2d:
-                scaling = torch.exp(self._scales)
+                scaling = torch.exp(self._scales.weight)
                 scaling = torch.cat([scaling[..., :2], torch.zeros_like(scaling[..., :1])], dim=-1)
                 return scaling
             else:
-                return torch.exp(self._scales)
+                return torch.exp(self._scales.weight)
 
     @property
     def get_opacity(self):
-        return torch.sigmoid(self._opacities)
+        return torch.sigmoid(self._opacities.weight)
 
     @property
     def get_quats(self):
-        return self.quat_act(self._quats)
+        return self.quat_act(self._quats.weight)
 
     def quat_act(self, x: torch.Tensor) -> torch.Tensor:
         return x / x.norm(dim=-1, keepdim=True)
