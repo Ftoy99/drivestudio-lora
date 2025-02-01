@@ -282,6 +282,7 @@ def main(args):
     # NOTE: If resume, gaussians will be loaded from checkpoint
     #       If not, gaussians will be initialized from dataset
     if args.resume_from is not None:
+        trainer.init_gaussians_from_dataset(dataset=dataset)
         trainer.resume_from_checkpoint(
             ckpt_path=args.resume_from,
             load_only_model=True
@@ -289,7 +290,7 @@ def main(args):
         logger.info(
             f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
         )
-        trainer.init_gaussians_from_dataset(dataset=dataset)
+
     else:
         trainer.init_gaussians_from_dataset(dataset=dataset)
         logger.info(
