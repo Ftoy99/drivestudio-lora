@@ -381,9 +381,6 @@ class VanillaGaussiansEmb(nn.Module):
 
         self._features_dc = Parameter(self._features_dc[~culls].detach())
         self._features_rest = Parameter(self._features_rest[~culls].detach())
-        print(self._means.weight.shape)
-        print(type(self._means.weight[~culls].shape))
-        print(~culls.shape)
 
         means = self._means.weight[~culls].detach()
         scales = self._scales.weight[~culls].detach()
