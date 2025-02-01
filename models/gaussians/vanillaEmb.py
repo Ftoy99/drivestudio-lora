@@ -382,7 +382,7 @@ class VanillaGaussiansEmb(nn.Module):
         self._features_dc = Parameter(self._features_dc[~culls].detach())
         self._features_rest = Parameter(self._features_rest[~culls].detach())
         print(self._means.weight)
-        print(self._means[~culls])
+        print(self._means.weight[~culls])
 
         self._means = nn.Embedding(self._means[~culls].size(0), self._means.size(1))
         self._scales = nn.Embedding(self._scales[~culls].size(0), self._scales.size(1))
