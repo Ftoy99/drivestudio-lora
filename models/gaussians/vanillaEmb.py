@@ -374,12 +374,13 @@ class VanillaGaussiansEmb(nn.Module):
                     self.ctrl_cfg.cull_scale_thresh * self.scene_scale
             ).squeeze()
             culls = culls | toobigs
-            culls.to(self.device)
+            culls = culls.to(self.max_2Dsize.device)
             if self.step < self.ctrl_cfg.stop_screen_size_at:
                 # cull big screen space
                 assert self.max_2Dsize is not None
                 print(self.max_2Dsize.device)
                 print(culls.device)
+
                 culls = culls | (self.max_2Dsize > self.ctrl_cfg.cull_screen_size).squeeze()
 
         self._features_dc = Parameter(self._features_dc[~culls].detach())
