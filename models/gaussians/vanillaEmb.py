@@ -458,11 +458,11 @@ class VanillaGaussiansEmb(nn.Module):
         return dup_means, dup_feature_dc, dup_feature_rest, dup_opacities, dup_scales, dup_quats
 
     def get_gaussians(self, cam: dataclass_camera) -> Dict:
-        filter_mask = torch.ones_like(self._means[:, 0], dtype=torch.bool)
+        filter_mask = torch.ones_like(self._means.weight[:, 0], dtype=torch.bool)
         self.filter_mask = filter_mask
         
         # get colors of gaussians
-        colors = torch.cat((self._features_dc[:, None, :], self._features_rest), dim=1)
+        colors = torch.cat((self._features_dc.weight[:, None, :], self._features_rest.weight), dim=1)
         if self.sh_degree > 0:
             viewdirs = self._means.detach() - cam.camtoworlds.data[..., :3, 3]  # (N, 3)
             viewdirs = viewdirs / viewdirs.norm(dim=-1, keepdim=True)
