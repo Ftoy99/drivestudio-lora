@@ -347,7 +347,7 @@ class VanillaGaussiansEmb(nn.Module):
                 # NOTE: in nerfstudio, reset_value = cull_alpha_thresh * 0.8
                 # we align to original repo of gaussians spalting
                 reset_value = torch.min(self.get_opacity.data,
-                                        torch.ones_like(self._opacities.data) * self.ctrl_cfg.reset_alpha_value)
+                                        torch.ones_like(self._opacities.weight) * self.ctrl_cfg.reset_alpha_value)
                 self._opacities.data = torch.logit(reset_value)
                 # reset the exp of optimizer
                 for group in optimizer.param_groups:
@@ -451,15 +451,12 @@ class VanillaGaussiansEmb(nn.Module):
         return dup_means, dup_feature_dc, dup_feature_rest, dup_opacities, dup_scales, dup_quats
 
     def get_gaussians(self, cam: dataclass_camera) -> Dict:
-        print("get gaussians")
         filter_mask = torch.ones_like(self._means.weight[:, 0], dtype=torch.bool)
         self.filter_mask = filter_mask
 
         # get colors of gaussians
         colors = torch.cat((self._features_dc[:, None, :], self._features_rest), dim=1)
         if self.sh_degree > 0:
-            print(self._means.weight.detach().device)
-            print(cam.camtoworlds.data[..., :3, 3].device)
             viewdirs = self._means.weight.detach() - cam.camtoworlds.data[..., :3, 3]  # (N, 3)
             viewdirs = viewdirs / viewdirs.norm(dim=-1, keepdim=True)
             n = min(self.step // self.ctrl_cfg.sh_degree_interval, self.sh_degree)
