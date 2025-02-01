@@ -433,13 +433,13 @@ class VanillaGaussiansEmb(nn.Module):
         """
         n_dups = dup_mask.sum().item()
         print(f"      Dup: {n_dups}")
-        dup_means = self._means[dup_mask]
+        dup_means = self._means.weight[dup_mask]
         # dup_colors = self.colors_all[dup_mask]
         dup_feature_dc = self._features_dc[dup_mask]
         dup_feature_rest = self._features_rest[dup_mask]
-        dup_opacities = self._opacities[dup_mask]
-        dup_scales = self._scales[dup_mask]
-        dup_quats = self._quats[dup_mask]
+        dup_opacities = self._opacities.weight[dup_mask]
+        dup_scales = self._scales.weight[dup_mask]
+        dup_quats = self._quats.weight[dup_mask]
         return dup_means, dup_feature_dc, dup_feature_rest, dup_opacities, dup_scales, dup_quats
 
     def get_gaussians(self, cam: dataclass_camera) -> Dict:
