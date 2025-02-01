@@ -230,6 +230,7 @@ class BasicTrainer(nn.Module):
         self.optimizer = torch.optim.Adam(groups, lr=0.0, eps=1e-15)
         self.lr_schedulers = lr_schedulers
         self.grad_scaler = torch.cuda.amp.GradScaler(enabled=self.optim_general.get("use_grad_scaler", False))
+        print("Done with optimizer")
 
     def _init_losses(self) -> None:
         sky_opacity_loss_fn = None
