@@ -409,22 +409,22 @@ class VanillaGaussiansEmb(nn.Module):
                 self.get_scaling[split_mask].repeat(samps, 1) * centered_samples
             # torch.exp(self._scales[split_mask].repeat(samps, 1)) * centered_samples
         )  # how these scales are rotated
-        quats = self.quat_act(self._quats[split_mask])  # normalize them first
+        quats = self.quat_act(self._quats.weight[split_mask])  # normalize them first
         rots = quat_to_rotmat(quats.repeat(samps, 1))  # how these scales are rotated
         rotated_samples = torch.bmm(rots, scaled_samples[..., None]).squeeze()
-        new_means = rotated_samples + self._means[split_mask].repeat(samps, 1)
+        new_means = rotated_samples + self._means.weight[split_mask].repeat(samps, 1)
         # step 2, sample new colors
         # new_colors_all = self.colors_all[split_mask].repeat(samps, 1, 1)
         new_feature_dc = self._features_dc[split_mask].repeat(samps, 1)
         new_feature_rest = self._features_rest[split_mask].repeat(samps, 1, 1)
         # step 3, sample new opacities
-        new_opacities = self._opacities[split_mask].repeat(samps, 1)
+        new_opacities = self._opacities.weight[split_mask].repeat(samps, 1)
         # step 4, sample new scales
         size_fac = 1.6
         new_scales = torch.log(torch.exp(self._scales[split_mask]) / size_fac).repeat(samps, 1)
         self._scales[split_mask] = torch.log(torch.exp(self._scales[split_mask]) / size_fac)
         # step 5, sample new quats
-        new_quats = self._quats[split_mask].repeat(samps, 1)
+        new_quats = self._quats.weight[split_mask].repeat(samps, 1)
         return new_means, new_feature_dc, new_feature_rest, new_opacities, new_scales, new_quats
 
     def dup_gaussians(self, dup_mask: torch.Tensor) -> Tuple:
