@@ -211,8 +211,8 @@ def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
 
             # Check if 'exp_avg' exists, if not, initialize it
             if "exp_avg_sq" not in param_state:
-                print(f"Warning: 'exp_avg' missing for {name}, initializing.")
-                param_state["exp_avg"] = torch.zeros_like(old_params)
+                print(f"Warning: 'exp_avg_sq' missing for {name}, initializing.")
+                param_state["exp_avg_sq"] = torch.zeros_like(old_params)
 
             repeat_dims = (n,) + tuple(1 for _ in range(param_state["exp_avg"].dim() - 1))
             param_state["exp_avg"] = torch.cat(
