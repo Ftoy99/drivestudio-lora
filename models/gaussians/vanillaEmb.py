@@ -381,7 +381,7 @@ class VanillaGaussiansEmb(nn.Module):
 
         self._features_dc = Parameter(self._features_dc[~culls].detach())
         self._features_rest = Parameter(self._features_rest[~culls].detach())
-        print(self._features_rest[~culls].detach().device)
+        print(self._features_rest.detach().device)
 
         means = self._means.weight[~culls]
         scales = self._scales.weight[~culls]
