@@ -421,8 +421,8 @@ class VanillaGaussiansEmb(nn.Module):
         new_opacities = self._opacities.weight[split_mask].repeat(samps, 1)
         # step 4, sample new scales
         size_fac = 1.6
-        new_scales = torch.log(torch.exp(self._scales[split_mask]) / size_fac).repeat(samps, 1)
-        self._scales[split_mask] = torch.log(torch.exp(self._scales[split_mask]) / size_fac)
+        new_scales = torch.log(torch.exp(self._scales.weight[split_mask]) / size_fac).repeat(samps, 1)
+        self._scales.weight[split_mask] = torch.log(torch.exp(self._scales.weight[split_mask]) / size_fac)
         # step 5, sample new quats
         new_quats = self._quats.weight[split_mask].repeat(samps, 1)
         return new_means, new_feature_dc, new_feature_rest, new_opacities, new_scales, new_quats
