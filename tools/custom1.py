@@ -235,11 +235,11 @@ if __name__ == "__main__":
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
-        target_modules='all-linear',
+        target_modules='all-parameters',
         task_type=TaskType.SEQ_2_SEQ_LM
     )
     # Apply LoRA
-    lora_model = get_peft_model(trainer.models, lora_config)
+    lora_model = get_peft_model(trainer.models["Background"], lora_config)
 
     # Print the model structure
     print(lora_model)
