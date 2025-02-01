@@ -370,7 +370,7 @@ class VanillaGaussiansEmb(nn.Module):
         if self.step > self.ctrl_cfg.reset_alpha_interval:
             # cull huge ones
             toobigs = (
-                    torch.exp(self._scales).max(dim=-1).values >
+                    torch.exp(self._scales.weight).max(dim=-1).values >
                     self.ctrl_cfg.cull_scale_thresh * self.scene_scale
             ).squeeze()
             culls = culls | toobigs
