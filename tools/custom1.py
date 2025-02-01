@@ -235,8 +235,7 @@ if __name__ == "__main__":
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
-        target_modules=["deform_network.linear.0"],
-        task_type=TaskType.SEQ_2_SEQ_LM
+        task_type=TaskType.FEATURE_EXTRACTION
     )
     # Apply LoRA
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
