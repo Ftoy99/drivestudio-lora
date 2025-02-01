@@ -199,8 +199,8 @@ def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
     for group_idx, group in enumerate(optimizer.param_groups):
         print(f"optmizer {group_idx}, {group}")
         name = group["name"]
-        print("optmizer {name}")
         if name in param_dict.keys():
+            print(f"optmizer {name} in param dict{param_dict.keys()}")
             old_params = group["params"][0]
             new_params = param_dict[name]
             param_state = optimizer.state[old_params]
