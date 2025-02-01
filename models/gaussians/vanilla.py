@@ -269,12 +269,10 @@ class VanillaGaussians(nn.Module):
 
                 split_idcs = torch.where(splits)[0]
                 param_groups = self.get_gaussian_param_groups()
-                print(f"params groups {param_groups}")
                 dup_in_optim(optimizer, split_idcs, param_groups, n=nsamps)
 
                 dup_idcs = torch.where(dups)[0]
                 param_groups = self.get_gaussian_param_groups()
-                print(f"params groups {param_groups}")
                 dup_in_optim(optimizer, dup_idcs, param_groups, 1)
 
             # cull NOTE: Offset all the opacity reset logic by refine_every so that we don't

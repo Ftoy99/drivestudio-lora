@@ -230,9 +230,7 @@ class PeriodicVibrationGaussians(VanillaGaussians):
                 )
                 
                 split_idcs = torch.where(splits)[0]
-
                 param_groups = self.get_gaussian_param_groups()
-                print(f"exponential average {param_groups}")
                 dup_in_optim(optimizer, split_idcs, param_groups, n=nsamps)
 
                 dup_idcs = torch.where(dups)[0]
