@@ -293,10 +293,11 @@ def main(args):
         smplnode_pts_dict = dataset.get_init_smpl_objects(
             trainer.model_config["SMPLNodes"]["init"]
         )
-        trainer.safe_init_models(
+        res = trainer.safe_init_models(
             model=trainer.models["SMPLNodes"],
             instance_pts_dict=smplnode_pts_dict
         )
+        print(f"SMPL RESULT {res}")
 
     else:
         trainer.init_gaussians_from_dataset(dataset=dataset)
