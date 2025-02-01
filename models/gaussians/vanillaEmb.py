@@ -465,7 +465,7 @@ class VanillaGaussiansEmb(nn.Module):
 
         # collect gaussians information
         gs_dict = dict(
-            _means=self._means[filter_mask],
+            _means=self._means.weight[filter_mask],
             _opacities=activated_opacities[filter_mask],
             _rgbs=actovated_colors[filter_mask],
             _scales=activated_scales[filter_mask],
