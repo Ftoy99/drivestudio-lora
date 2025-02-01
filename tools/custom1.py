@@ -237,7 +237,7 @@ if __name__ == "__main__":
         task_type=TaskType.SEQ_2_SEQ_LM
     )
     # Apply LoRA
-    lora_model = get_peft_model(trainer.models, lora_config)
+    lora_model = get_peft_model(trainer, lora_config)
 
     # Print the model structure
     print(lora_model)
