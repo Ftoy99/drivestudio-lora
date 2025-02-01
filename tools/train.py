@@ -298,7 +298,7 @@ def main(args):
             instance_pts_dict=smplnode_pts_dict
         )
         print(f"SMPL RESULT {res}")
-
+        trainer.init_gaussians_from_dataset(dataset=dataset)
     else:
         trainer.init_gaussians_from_dataset(dataset=dataset)
         logger.info(
