@@ -385,17 +385,23 @@ class VanillaGaussiansEmb(nn.Module):
         print(type(self._means.weight[~culls].shape))
         print(~culls.shape)
 
-        self._means = nn.Embedding(self._means.weight[~culls].size(0), self._means.weight.size(1))
-        self._scales = nn.Embedding(self._scales.weight[~culls].size(0), self._scales.weight.size(1))
-        self._quats = nn.Embedding(self._quats.weight[~culls].size(0), self._quats.weight.size(1))
-        # self.colors_all = nn.Embedding(self.colors_all.weight[~culls].size(0), self.colors_all.size(1))
-        self._opacities = nn.Embedding(self._opacities.weight[~culls].size(0), self._opacities.weight.size(1))
+        means = self._means.weight[~culls].detach()
+        scales = self._scales.weight[~culls].detach()
+        quats = self._quats.weight[~culls].detach()
+        opacities = self._opacities.weight[~culls].detach()
 
-        self._means.weight.data.copy_(self._means.weight[~culls].detach())
-        self._scales.weight.data.copy_(self._scales.weight[~culls].detach())
-        self._quats.weight.data.copy_(self._quats.weight[~culls].detach())
+        self._means = nn.Embedding(means.size(0), self._means.weight.size(1))
+        self._scales = nn.Embedding(scales.size(0), self._scales.weight.size(1))
+        self._quats = nn.Embedding(quats.size(0), self._quats.weight.size(1))
+        self._opacities = nn.Embedding(opacities.size(0), self._opacities.weight.size(1))
+        # self.colors_all = nn.Embedding(self.colors_all.weight[~culls].size(0), self.colors_all.size(1))
+
+        self._means.weight.data.copy_(means)
+        self._scales.weight.data.copy_(scales)
+        self._quats.weight.data.copy_(quats)
+        self._opacities.weight.data.copy_(opacities)
+
         # self.colors_all.weight.data.copy_(self.colors_all.weight[~culls].detach())
-        self._opacities.weight.data.copy_(self._opacities.weight[~culls].detach())
 
         print(f"     Cull: {n_bef - self.num_points}")
         return culls
