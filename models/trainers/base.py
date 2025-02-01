@@ -178,7 +178,6 @@ class BasicTrainer(nn.Module):
         # get param groups first
         self.param_groups = {}
         for class_name, model in self.models.items():
-            print(f"class_name : {class_name} model : {model}")
             self.param_groups.update(model.get_param_groups())
 
         groups = []
@@ -230,7 +229,6 @@ class BasicTrainer(nn.Module):
         self.optimizer = torch.optim.Adam(groups, lr=0.0, eps=1e-15)
         self.lr_schedulers = lr_schedulers
         self.grad_scaler = torch.cuda.amp.GradScaler(enabled=self.optim_general.get("use_grad_scaler", False))
-        print("Done with optimizer")
 
     def _init_losses(self) -> None:
         sky_opacity_loss_fn = None

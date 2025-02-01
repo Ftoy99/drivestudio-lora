@@ -450,6 +450,7 @@ class VanillaGaussiansEmb(nn.Module):
         return dup_means, dup_feature_dc, dup_feature_rest, dup_opacities, dup_scales, dup_quats
 
     def get_gaussians(self, cam: dataclass_camera) -> Dict:
+        print("get gaussians")
         filter_mask = torch.ones_like(self._means.weight[:, 0], dtype=torch.bool)
         self.filter_mask = filter_mask
 
