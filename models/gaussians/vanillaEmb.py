@@ -394,7 +394,7 @@ class VanillaGaussiansEmb(nn.Module):
         self._quats = nn.Embedding(quats.size(0), self._quats.weight.size(1))
         self._opacities = nn.Embedding(opacities.size(0), self._opacities.weight.size(1))
         # self.colors_all = nn.Embedding(self.colors_all.weight[~culls].size(0), self.colors_all.size(1))
-        print(self._means.weights.device)
+        print(self._means.weight.device)
 
         self._means.weight.data.copy_(means)
         self._scales.weight.data.copy_(scales)
