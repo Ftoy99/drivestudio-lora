@@ -226,6 +226,7 @@ if __name__ == "__main__":
 
     for layer_name, model in trainer.models.items():
         print(f"Layer {layer_name} -> Class: {model}")  # Print class of the model
+        print(model.named_modules)
 
     from peft import LoraConfig, TaskType, get_peft_model
 
