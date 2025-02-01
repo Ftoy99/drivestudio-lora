@@ -244,9 +244,6 @@ if __name__ == "__main__":
     # Print the model structure
     print(f"lora_model {lora_model}")
 
-    for name, param in lora_model.named_parameters():
-        print(f"{name}: requires_grad={param.requires_grad}")
-
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
     )
