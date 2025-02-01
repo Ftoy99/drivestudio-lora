@@ -176,6 +176,7 @@ def do_evaluation(
             )
             logger.info(f"Saved novel view video for trajectory type: {traj_type} to {save_path}")
 
+
 def set_seeds(seed=31):
     """
     Fix random seeds.
@@ -185,18 +186,19 @@ def set_seeds(seed=31):
     np.random.seed(seed)
     random.seed(seed)
 
+
 def setup(args):
     # get config
     cfg = OmegaConf.load(args.config_file)
-    
+
     # parse datasets
     args_from_cli = OmegaConf.from_cli(args.opts)
     if "dataset" in args_from_cli:
         cfg.dataset = args_from_cli.pop("dataset")
-        
+
     assert "dataset" in cfg or "data" in cfg, \
         "Please specify dataset in config or data in config"
-        
+
     if "dataset" in cfg:
         dataset_type = cfg.pop("dataset")
         dataset_cfg = OmegaConf.load(
@@ -204,28 +206,28 @@ def setup(args):
         )
         # merge data
         cfg = OmegaConf.merge(cfg, dataset_cfg)
-    
+
     # merge cli
     cfg = OmegaConf.merge(cfg, args_from_cli)
     log_dir = os.path.join(args.output_root, args.project, args.run_name)
-    
+
     # update config and create log dir
     cfg.log_dir = log_dir
     os.makedirs(log_dir, exist_ok=True)
     for folder in ["images", "videos", "metrics", "configs_bk", "buffer_maps", "backup"]:
         os.makedirs(os.path.join(log_dir, folder), exist_ok=True)
-    
+
     # setup wandb
     if args.enable_wandb:
         # sometimes wandb fails to init in cloud machines, so we give it several (many) tries
         while (
-            wandb.init(
-                project=args.project,
-                entity=args.entity,
-                sync_tensorboard=True,
-                settings=wandb.Settings(start_method="fork"),
-            )
-            is not wandb.run
+                wandb.init(
+                    project=args.project,
+                    entity=args.entity,
+                    sync_tensorboard=True,
+                    settings=wandb.Settings(start_method="fork"),
+                )
+                is not wandb.run
         ):
             continue
         wandb.run.name = args.run_name
@@ -239,26 +241,27 @@ def setup(args):
     global logger
     setup_logging(output=log_dir, level=logging.INFO, time_string=current_time)
     logger.info("\n".join("%s: %s" % (k, str(v)) for k, v in sorted(dict(vars(args)).items())))
-    
+
     # save config
     logger.info(f"Config:\n{OmegaConf.to_yaml(cfg)}")
     saved_cfg_path = os.path.join(log_dir, "config.yaml")
     with open(saved_cfg_path, "w") as f:
         OmegaConf.save(config=cfg, f=f)
-        
+
     # also save a backup copy
     saved_cfg_path_bk = os.path.join(log_dir, "configs_bk", f"config_{current_time}.yaml")
     with open(saved_cfg_path_bk, "w") as f:
         OmegaConf.save(config=cfg, f=f)
     logger.info(f"Full config saved to {saved_cfg_path}, and {saved_cfg_path_bk}")
-    
+
     # Backup codes
     backup_project(
-        os.path.join(log_dir, 'backup'), "./", 
-        ["configs", "datasets", "models", "utils", "tools"], 
+        os.path.join(log_dir, 'backup'), "./",
+        ["configs", "datasets", "models", "utils", "tools"],
         [".py", ".h", ".cpp", ".cuh", ".cu", ".sh", ".yaml"]
     )
     return cfg
+
 
 def main(args):
     cfg = setup(args)
@@ -279,19 +282,21 @@ def main(args):
         device=device
     )
 
-    #Add the lora peft
+    # Add the lora peft
     from peft import LoraConfig, TaskType, get_peft_model
 
     lora_config = LoraConfig(
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
-        target_modules=["deform_network.linear.0","deform_network.linear.1","deform_network.linear.2","deform_network.linear.3","deform_network.linear.4","deform_network.linear.5","deform_network.linear.6","deform_network.linear.7",],
+        target_modules=["deform_network.linear.0", "deform_network.linear.1", "deform_network.linear.2",
+                        "deform_network.linear.3", "deform_network.linear.4", "deform_network.linear.5",
+                        "deform_network.linear.6", "deform_network.linear.7", ],
         task_type=TaskType.FEATURE_EXTRACTION
     )
     # Apply LoRA
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
-    
+
     # NOTE: If resume, gaussians will be loaded from checkpoint
     #       If not, gaussians will be initialized from dataset
     if args.resume_from is not None:
@@ -307,11 +312,11 @@ def main(args):
         logger.info(
             f"Training from scratch, initializing gaussians from dataset, starting at step {trainer.step}"
         )
-    
+
     if args.enable_viewer:
         # a simple viewer for background visualization
         trainer.init_viewer(port=args.viewer_port)
-    
+
     # define render keys
     render_keys = [
         "gt_rgbs",
@@ -335,15 +340,15 @@ def main(args):
         render_keys += ["rgb_sky_blend", "rgb_sky"]
     if cfg.render.vis_error:
         render_keys.insert(render_keys.index("rgbs") + 1, "rgb_error_maps")
-    
+
     # setup optimizer  
     trainer.initialize_optimizer()
-    
+
     # setup metric logger
     metrics_file = os.path.join(cfg.log_dir, "metrics.json")
     metric_logger = MetricLogger(delimiter="  ", output_file=metrics_file)
     all_iters = np.arange(trainer.step, trainer.num_iters + 1)
-    
+
     # DEBUG USE
     # do_evaluation(
     #     step=0,
@@ -355,8 +360,8 @@ def main(args):
     # )
 
     for step in metric_logger.log_every(all_iters, cfg.logging.print_freq):
-        #----------------------------------------------------------------------------
-        #----------------------------     Validate     ------------------------------
+        # ----------------------------------------------------------------------------
+        # ----------------------------     Validate     ------------------------------
         if step % cfg.logging.vis_freq == 0 and cfg.logging.vis_freq > 0:
             logger.info("Visualizing...")
             vis_timestep = np.linspace(
@@ -404,15 +409,14 @@ def main(args):
                     wandb.log({"image_rendering/" + k: wandb.Image(v)})
             del render_results
             torch.cuda.empty_cache()
-                
-        
-        #----------------------------------------------------------------------------
-        #----------------------------  training step  -------------------------------
+
+        # ----------------------------------------------------------------------------
+        # ----------------------------  training step  -------------------------------
         # prepare for training
         trainer.set_train()
         trainer.preprocess_per_train_step(step=step)
-        trainer.optimizer_zero_grad() # zero grad
-        
+        trainer.optimizer_zero_grad()  # zero grad
+
         # get data
         train_step_camera_downscale = trainer._get_downscale_factor()
         image_infos, cam_infos = dataset.train_image_set.next(train_step_camera_downscale)
@@ -422,7 +426,7 @@ def main(args):
         for k, v in cam_infos.items():
             if isinstance(v, torch.Tensor):
                 cam_infos[k] = v.cuda(non_blocking=True)
-        
+
         # forward & backward
         outputs = trainer(image_infos, cam_infos)
         trainer.update_visibility_filter()
@@ -439,42 +443,45 @@ def main(args):
             if torch.isinf(v).any():
                 raise ValueError(f"Inf detected in loss {k} at step {step}")
         trainer.backward(loss_dict)
-        
+
         # after training step
         trainer.postprocess_per_train_step(step=step)
-        
-        #----------------------------------------------------------------------------
-        #-------------------------------  logging  ----------------------------------
+
+        # ----------------------------------------------------------------------------
+        # -------------------------------  logging  ----------------------------------
         with torch.no_grad():
             # cal stats
             metric_dict = trainer.compute_metrics(
                 outputs=outputs,
                 image_infos=image_infos,
             )
-        metric_logger.update(**{"train_metrics/"+k: v.item() for k, v in metric_dict.items()})
+        metric_logger.update(**{"train_metrics/" + k: v.item() for k, v in metric_dict.items()})
         metric_logger.update(**{"train_stats/gaussian_num_" + k: v for k, v in trainer.get_gaussian_count().items()})
-        metric_logger.update(**{"losses/"+k: v.item() for k, v in loss_dict.items()})
-        metric_logger.update(**{"train_stats/lr_" + group['name']: group['lr'] for group in trainer.optimizer.param_groups})
+        metric_logger.update(**{"losses/" + k: v.item() for k, v in loss_dict.items()})
+        metric_logger.update(
+            **{"train_stats/lr_" + group['name']: group['lr'] for group in trainer.optimizer.param_groups})
         if args.enable_wandb:
             wandb.log({k: v.avg for k, v in metric_logger.meters.items()})
 
-        #----------------------------------------------------------------------------
-        #----------------------------     Saving     --------------------------------
+        # ----------------------------------------------------------------------------
+        # ----------------------------     Saving     --------------------------------
         do_save = step > 0 and (
-            (step % cfg.logging.saveckpt_freq == 0) or (step == trainer.num_iters)
+                (step % cfg.logging.saveckpt_freq == 0) or (step == trainer.num_iters)
         ) and (args.resume_from is None)
-        if do_save:  
+        if do_save:
             trainer.save_checkpoint(
                 log_dir=cfg.log_dir,
                 save_only_model=True,
                 is_final=step == trainer.num_iters,
             )
-        
-        #----------------------------------------------------------------------------
-        #------------------------    Cache Image Error    ---------------------------
+
+            lora_model.save_pretrained("lora")
+
+        # ----------------------------------------------------------------------------
+        # ------------------------    Cache Image Error    ---------------------------
         if (
-            step > 0 and trainer.optim_general.cache_buffer_freq > 0
-            and step % trainer.optim_general.cache_buffer_freq == 0
+                step > 0 and trainer.optim_general.cache_buffer_freq > 0
+                and step % trainer.optim_general.cache_buffer_freq == 0
         ):
             logger.info("Caching image error...")
             trainer.set_eval()
@@ -501,8 +508,7 @@ def main(args):
                     fps=cfg.render.fps,
                 )
             logger.info("Done caching rgb error maps")
-            
-    
+
     logger.info("Training done!")
 
     do_evaluation(
@@ -513,34 +519,37 @@ def main(args):
         render_keys=render_keys,
         args=args,
     )
-    
+
     if args.enable_viewer:
         print("Viewer running... Ctrl+C to exit.")
         time.sleep(1000000)
-    
+
     return step
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Train Gaussian Splatting for a single scene")
     parser.add_argument("--config_file", help="path to config file", type=str)
     parser.add_argument("--output_root", default="./work_dirs/", help="path to save checkpoints and logs", type=str)
-    
+
     # eval
     parser.add_argument("--resume_from", default=None, help="path to checkpoint to resume from", type=str)
-    parser.add_argument("--render_video_postfix", type=str, default=None, help="an optional postfix for video")    
-    
+    parser.add_argument("--render_video_postfix", type=str, default=None, help="an optional postfix for video")
+
     # wandb logging part
     parser.add_argument("--enable_wandb", action="store_true", help="enable wandb logging")
     parser.add_argument("--entity", default="ziyc", type=str, help="wandb entity name")
-    parser.add_argument("--project", default="drivestudio", type=str, help="wandb project name, also used to enhance log_dir")
+    parser.add_argument("--project", default="drivestudio", type=str,
+                        help="wandb project name, also used to enhance log_dir")
     parser.add_argument("--run_name", default="omnire", type=str, help="wandb run name, also used to enhance log_dir")
-    
+
     # viewer
     parser.add_argument("--enable_viewer", action="store_true", help="enable viewer")
     parser.add_argument("--viewer_port", type=int, default=8080, help="viewer port")
-    
+
     # misc
-    parser.add_argument("opts", help="Modify config options using the command-line", default=None, nargs=argparse.REMAINDER)
-    
+    parser.add_argument("opts", help="Modify config options using the command-line", default=None,
+                        nargs=argparse.REMAINDER)
+
     args = parser.parse_args()
     final_step = main(args)
