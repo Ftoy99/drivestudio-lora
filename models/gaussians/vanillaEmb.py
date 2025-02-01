@@ -398,6 +398,10 @@ class VanillaGaussiansEmb(nn.Module):
         self._scales.weight.data.copy_(scales)
         self._quats.weight.data.copy_(quats)
         self._opacities.weight.data.copy_(opacities)
+        print(self._means.device)
+        print(self._scales.device)
+        print(self._quats.device)
+        print(self._opacities.device)
 
         # self.colors_all.weight.data.copy_(self.colors_all.weight[~culls].detach())
 
