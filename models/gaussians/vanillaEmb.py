@@ -133,9 +133,13 @@ class VanillaGaussiansEmb(nn.Module):
         self._features_dc = nn.Embedding(shs[:, 0, :].size(0), shs[:, 0, :].size(1), device=self.device)
         self._features_dc.weight.data.copy_(shs[:, 0, :])
 
-        #Todo see how to convert this add : after 1
-        self._features_rest = nn.Embedding(shs[:, 1, :].size(0), shs[:, 1, :].size(1), device=self.device)
-        self._features_rest.weight.data.copy_(shs[:, 1, :])
+        num_embeddings = shs[:, 1:, :].shape[0]  # Number of elements to embed
+        embedding_dim = shs[:, 1:, :].shape[-1]  # Feature size
+
+        self._features_rest = nn.Embedding(num_embeddings, embedding_dim, device=self.device)
+
+        # Copy the existing weights
+        self._features_rest.weight.data.copy_(shs[:, 1:, :].reshape(num_embeddings, embedding_dim))
 
         # Create embedding for _opacities
         self._opacities = nn.Embedding(self.num_points, 1, device=self.device)
