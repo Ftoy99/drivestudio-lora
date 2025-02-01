@@ -235,11 +235,11 @@ if __name__ == "__main__":
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
-        target_modules=["_means"],
+        target_modules=["deform_network.linear.0.weight"],
         task_type=TaskType.SEQ_2_SEQ_LM
     )
     # Apply LoRA
-    lora_model = get_peft_model(trainer.models["Background"], lora_config)
+    lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
 
     # Print the model structure
     print(lora_model)
