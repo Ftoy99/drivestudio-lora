@@ -173,29 +173,29 @@ class dataclass_gs:
 
 
 def remove_from_optim(optimizer, deleted_mask, param_dict):
-    """removes the deleted_mask from the optimizer provided"""
-    for group_idx, group in enumerate(optimizer.param_groups):
-        name = group["name"]
-        if name in param_dict.keys():
-            old_params = group["params"][0]
-            new_params = param_dict[name]
-            assert len(new_params) == 1
-            param_state = optimizer.state[old_params]
-            del optimizer.state[old_params]
-            # # Modify the state directly without deleting and reassigning.
-            # param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
-            # param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
-            #TODO
-            # if "exp_avg" in param_state:
-            #     param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
-            # if "exp_avg_sq" in param_state:
-            #     param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
-
-            # Update the parameter in the optimizer's param group.
-            del optimizer.param_groups[group_idx]["params"][0]
-            del optimizer.param_groups[group_idx]["params"]
-            optimizer.param_groups[group_idx]["params"] = new_params
-            optimizer.state[new_params[0]] = param_state
+    # """removes the deleted_mask from the optimizer provided"""
+    # for group_idx, group in enumerate(optimizer.param_groups):
+    #     name = group["name"]
+    #     if name in param_dict.keys():
+    #         old_params = group["params"][0]
+    #         new_params = param_dict[name]
+    #         assert len(new_params) == 1
+    #         param_state = optimizer.state[old_params]
+    #         del optimizer.state[old_params]
+    #         # # Modify the state directly without deleting and reassigning.
+    #         # param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+    #         # param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+    #         #TODO
+    #         # if "exp_avg" in param_state:
+    #         #     param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+    #         # if "exp_avg_sq" in param_state:
+    #         #     param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+    #
+    #         # Update the parameter in the optimizer's param group.
+    #         del optimizer.param_groups[group_idx]["params"][0]
+    #         del optimizer.param_groups[group_idx]["params"]
+    #         optimizer.param_groups[group_idx]["params"] = new_params
+    #         optimizer.state[new_params[0]] = param_state
 
 
 def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
