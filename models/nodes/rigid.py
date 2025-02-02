@@ -222,6 +222,16 @@ class RigidNodes(VanillaGaussians):
                     if group["name"] == self.class_prefix + "opacity":
                         old_params = group["params"][0]
                         param_state = optimizer.state[old_params]
+                        #TODO CHECK AGAIN
+                        # Check if 'exp_avg' exists, if not, initialize it
+                        if "exp_avg" not in param_state:
+                            print(f"Warning: 'exp_avg' missing for {group['name']}, initializing.")
+                            param_state["exp_avg"] = torch.zeros_like(old_params)
+                        #TODO CHECK AGAIN
+                        # Check if 'exp_avg' exists, if not, initialize it
+                        if "exp_avg_sq" not in param_state:
+                            print(f"Warning: 'exp_avg_sq' missing for {group['name']}, initializing.")
+                            param_state["exp_avg_sq"] = torch.zeros_like(old_params)
                         param_state["exp_avg"] = torch.zeros_like(param_state["exp_avg"])
                         param_state["exp_avg_sq"] = torch.zeros_like(param_state["exp_avg_sq"])
             self.xys_grad_norm = None
