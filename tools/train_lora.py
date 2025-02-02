@@ -359,7 +359,7 @@ def main(args):
     #     render_keys=render_keys,
     #     args=args,
     # )
-
+    logger.info(f"For step in {all_iters} with print freq {cfg.logging.print_freq}")
     for step in metric_logger.log_every(all_iters, cfg.logging.print_freq):
         # ----------------------------------------------------------------------------
         # ----------------------------     Validate     ------------------------------
