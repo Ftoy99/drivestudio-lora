@@ -265,7 +265,7 @@ class BasicTrainer(nn.Module):
         #         torch.nn.utils.clip_grad_norm_(self.param_groups[params_name], max_norm)
         #     if any(any(p.grad is not None for p in g["params"]) for g in optimizer.param_groups):
         #         self.grad_scaler.step(optimizer)
-        print(f"optimizer{self.optimizer.param_groups.pop()}")
+        print(f"optimizer{self.optimizer.state_dict()}")
         self.optimizer.step()
 
     def preprocess_per_train_step(self, step: int) -> None:
