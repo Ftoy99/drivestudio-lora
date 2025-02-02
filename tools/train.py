@@ -428,6 +428,7 @@ def main(args):
                 raise ValueError(f"NaN detected in loss {k} at step {step}")
             if torch.isinf(v).any():
                 raise ValueError(f"Inf detected in loss {k} at step {step}")
+            print(loss_dict)
         trainer.backward(loss_dict)
         
         # after training step
