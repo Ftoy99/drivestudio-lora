@@ -177,16 +177,15 @@ def main(args):
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
-        # target_modules=["deform_network.linear.0", "deform_network.linear.1", "deform_network.linear.2",
-        #                 "deform_network.linear.3", "deform_network.linear.4", "deform_network.linear.5",
-        #                 "deform_network.linear.6", "deform_network.linear.7", ],
-        target_modules=["deform_network.linear.0"],
+        target_modules=["deform_network.linear.0", "deform_network.linear.1", "deform_network.linear.2",
+                        "deform_network.linear.3", "deform_network.linear.4", "deform_network.linear.5",
+                        "deform_network.linear.6", "deform_network.linear.7", ],
         task_type=TaskType.FEATURE_EXTRACTION
     )
     # Apply LoRA
     logger.info(f"Applying lora config")
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
-    print(lora_model)
+    lora_model.print_trainable_parameters()
 
     # setup optimizer  
     trainer.initialize_optimizer()
@@ -321,6 +320,8 @@ def main(args):
                 save_only_model=True,
                 is_final=step == trainer.num_iters,
             )
+            logger.info("Saving lora...")
+            print("Saving lora...")
             lora_model.save_pretrained("lora/lora_latest.pth")
 
         # ----------------------------------------------------------------------------
