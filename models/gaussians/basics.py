@@ -184,8 +184,10 @@ def remove_from_optim(optimizer, deleted_mask, param_dict):
             del optimizer.state[old_params]
 
             # Modify the state directly without deleting and reassigning.
-            param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
-            param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+            if "exp_avg" in param_state:
+                param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+            if "exp_avg_sq" in param_state:
+                param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
 
             # Update the parameter in the optimizer's param group.
             del optimizer.param_groups[group_idx]["params"][0]
