@@ -178,6 +178,7 @@ class BasicTrainer(nn.Module):
         # get param groups first
         self.param_groups = {}
         for class_name, model in self.models.items():
+            print(model.get_param_groups())
             self.param_groups.update(model.get_param_groups())
 
         groups = []
