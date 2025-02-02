@@ -486,14 +486,15 @@ class RigidNodes(VanillaGaussians):
                             loss_dict["trans_temporal_smooth"] = loss * trans_cfg.w
         return loss_dict
 
-    def state_dict(self) -> Dict:
-        state_dict = super().state_dict()
-        state_dict.update({
-            "points_ids": self.point_ids,
-            "instances_size": self.instances_size,
-            "instances_fv": self.instances_fv,
-        })
-        return state_dict
+    def state_dict(self, *args, destination=None, prefix='', keep_vars=False) -> Dict:
+        destination = super().state_dict(destination=destination, prefix=prefix, keep_vars=keep_vars)
+
+        # Add custom state variables
+        destination[prefix + "points_ids"] = self.point_ids
+        destination[prefix + "instances_size"] = self.instances_size
+        destination[prefix + "instances_fv"] = self.instances_fv
+
+        return destination
 
     def load_state_dict(self, state_dict: Dict, **kwargs) -> str:
         self.point_ids = state_dict.pop("points_ids")

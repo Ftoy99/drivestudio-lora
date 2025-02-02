@@ -372,7 +372,6 @@ def main(args):
         time.sleep(1000000)
 
     logger.info("Saving lora...")
-    print("Saving lora...")
     lora_model.save_pretrained("lora/lora_latest.pth")
     return step
 
