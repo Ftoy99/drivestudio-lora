@@ -475,7 +475,7 @@ def main(args):
                 is_final=step == trainer.num_iters,
             )
 
-            lora_model.save_pretrained("lora")
+            lora_model.save_pretrained("lora/deform_lora.pth")
 
         # ----------------------------------------------------------------------------
         # ------------------------    Cache Image Error    ---------------------------
