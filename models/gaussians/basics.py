@@ -182,9 +182,9 @@ def remove_from_optim(optimizer, deleted_mask, param_dict):
             assert len(new_params) == 1
             param_state = optimizer.state[old_params]
             del optimizer.state[old_params]
-            # Modify the state directly without deleting and reassigning.
-            param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
-            param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+            # # Modify the state directly without deleting and reassigning.
+            # param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+            # param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
             #TODO
             # if "exp_avg" in param_state:
             #     param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
