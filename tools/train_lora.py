@@ -321,6 +321,7 @@ def main(args):
                 save_only_model=True,
                 is_final=step == trainer.num_iters,
             )
+            lora_model.save_pretrained("lora/lora_latest.pth")
 
         # ----------------------------------------------------------------------------
         # ------------------------    Cache Image Error    ---------------------------
