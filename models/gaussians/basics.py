@@ -182,12 +182,14 @@ def remove_from_optim(optimizer, deleted_mask, param_dict):
             assert len(new_params) == 1
             param_state = optimizer.state[old_params]
             del optimizer.state[old_params]
-
             # Modify the state directly without deleting and reassigning.
-            if "exp_avg" in param_state:
-                param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
-            if "exp_avg_sq" in param_state:
-                param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+            param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+            param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+            #TODO
+            # if "exp_avg" in param_state:
+            #     param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+            # if "exp_avg_sq" in param_state:
+            #     param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
 
             # Update the parameter in the optimizer's param group.
             del optimizer.param_groups[group_idx]["params"][0]
@@ -205,15 +207,15 @@ def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
             new_params = param_dict[name]
             param_state = optimizer.state[old_params]
 
-            # Check if 'exp_avg' exists, if not, initialize it
-            if "exp_avg" not in param_state:
-                print(f"Warning: 'exp_avg' missing for {name}, initializing.")
-                param_state["exp_avg"] = torch.zeros_like(old_params)
-
-            # Check if 'exp_avg' exists, if not, initialize it
-            if "exp_avg_sq" not in param_state:
-                print(f"Warning: 'exp_avg_sq' missing for {name}, initializing.")
-                param_state["exp_avg_sq"] = torch.zeros_like(old_params)
+            # #TODO Check if 'exp_avg' exists, if not, initialize it
+            # if "exp_avg" not in param_state:
+            #     print(f"Warning: 'exp_avg' missing for {name}, initializing.")
+            #     param_state["exp_avg"] = torch.zeros_like(old_params)
+            #
+            # #TODO Check if 'exp_avg' exists, if not, initialize it
+            # if "exp_avg_sq" not in param_state:
+            #     print(f"Warning: 'exp_avg_sq' missing for {name}, initializing.")
+            #     param_state["exp_avg_sq"] = torch.zeros_like(old_params)
 
             repeat_dims = (n,) + tuple(1 for _ in range(param_state["exp_avg"].dim() - 1))
             param_state["exp_avg"] = torch.cat(
