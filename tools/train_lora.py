@@ -170,10 +170,6 @@ def main(args):
     if cfg.render.vis_error:
         render_keys.insert(render_keys.index("rgbs") + 1, "rgb_error_maps")
 
-    # setup optimizer  
-    trainer.initialize_optimizer()
-
-
     # # Add the lora peft
     from peft import LoraConfig, TaskType, get_peft_model
     logger.info(f"Creating lora config")
@@ -191,6 +187,9 @@ def main(args):
     logger.info(f"Applying lora config")
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
     print(lora_model)
+
+    # setup optimizer  
+    trainer.initialize_optimizer()
 
     # setup metric logger
     metrics_file = os.path.join(cfg.log_dir, "metrics.json")
