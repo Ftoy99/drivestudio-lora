@@ -142,23 +142,6 @@ def main(args):
             f"Training from scratch, initializing gaussians from dataset, starting at step {trainer.step}"
         )
 
-    # Add the lora peft
-    from peft import LoraConfig, TaskType, get_peft_model
-    logger.info(f"Creating lora config")
-    lora_config = LoraConfig(
-        r=8,
-        lora_alpha=8,
-        init_lora_weights="gaussian",
-        target_modules=["deform_network.linear.0", "deform_network.linear.1", "deform_network.linear.2",
-                        "deform_network.linear.3", "deform_network.linear.4", "deform_network.linear.5",
-                        "deform_network.linear.6", "deform_network.linear.7", ],
-        task_type=TaskType.FEATURE_EXTRACTION
-    )
-    # Apply LoRA
-    logger.info(f"Applying lora config")
-    lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
-    print(lora_model)
-
     if args.enable_viewer:
         # a simple viewer for background visualization
         trainer.init_viewer(port=args.viewer_port)
@@ -189,6 +172,24 @@ def main(args):
 
     # setup optimizer  
     trainer.initialize_optimizer()
+
+
+    # Add the lora peft
+    from peft import LoraConfig, TaskType, get_peft_model
+    logger.info(f"Creating lora config")
+    lora_config = LoraConfig(
+        r=8,
+        lora_alpha=8,
+        init_lora_weights="gaussian",
+        target_modules=["deform_network.linear.0", "deform_network.linear.1", "deform_network.linear.2",
+                        "deform_network.linear.3", "deform_network.linear.4", "deform_network.linear.5",
+                        "deform_network.linear.6", "deform_network.linear.7", ],
+        task_type=TaskType.FEATURE_EXTRACTION
+    )
+    # Apply LoRA
+    logger.info(f"Applying lora config")
+    lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
+    print(lora_model)
 
     # setup metric logger
     metrics_file = os.path.join(cfg.log_dir, "metrics.json")
