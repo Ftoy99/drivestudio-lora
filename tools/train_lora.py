@@ -300,7 +300,7 @@ def main(args):
 
     # Add the lora peft
     from peft import LoraConfig, TaskType, get_peft_model
-
+    logger.info(f"Creating lora config")
     lora_config = LoraConfig(
         r=8,
         lora_alpha=8,
@@ -311,6 +311,7 @@ def main(args):
         task_type=TaskType.FEATURE_EXTRACTION
     )
     # Apply LoRA
+    logger.info(f"Applying lora config")
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
 
     if args.enable_viewer:
