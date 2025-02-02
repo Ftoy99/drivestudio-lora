@@ -5,7 +5,7 @@ dataset: waymo/3cams
 trainer:
   type: models.trainers.MultiTrainer
   optim:
-    num_iters: 8000
+    num_iters: 40000
     use_grad_scaler: false
     cache_buffer_freq: -1 # if > 0, use error based image sampler for training
   render:
