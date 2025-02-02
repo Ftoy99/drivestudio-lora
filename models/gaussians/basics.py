@@ -196,7 +196,7 @@ def remove_from_optim(optimizer, deleted_mask, param_dict):
     #         del optimizer.param_groups[group_idx]["params"]
     #         optimizer.param_groups[group_idx]["params"] = new_params
     #         optimizer.state[new_params[0]] = param_state
-
+    pass
 
 def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
     """adds the parameters to the optimizer"""
@@ -223,6 +223,7 @@ def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
     #         optimizer.state[new_params[0]] = param_state
     #         optimizer.param_groups[group_idx]["params"] = new_params
     #         del old_params
+    pass
 
 
 def k_nearest_sklearn(x: torch.Tensor, k: int):
