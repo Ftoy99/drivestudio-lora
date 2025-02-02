@@ -642,6 +642,10 @@ class BasicTrainer(nn.Module):
 
     def state_dict(self, only_model: bool = True):
         state_dict = super().state_dict()
+        print("Saving ")
+        for k, v in self.models.items():
+            print(f"Saving k{k} v{v}")
+
         state_dict.update({
             "models": {k: v.state_dict() for k, v in self.models.items()},
             "step": self.step,
