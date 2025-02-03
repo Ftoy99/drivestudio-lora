@@ -227,18 +227,6 @@ if __name__ == "__main__":
     for layer_name, model in trainer.models.items():
         print(model)
 
-    from peft import LoraConfig, TaskType, get_peft_model, PeftModel
-
-    lora_config = LoraConfig(
-        r=8,
-        lora_alpha=8,
-        init_lora_weights="gaussian",
-        target_modules=["deform_network.linear.0","deform_network.linear.1","deform_network.linear.2","deform_network.linear.3","deform_network.linear.4","deform_network.linear.5","deform_network.linear.6","deform_network.linear.7",],
-        task_type=TaskType.FEATURE_EXTRACTION
-    )
-    # Apply LoRA
-    lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
-
     logger.info(
         f"Resuming training from {args.resume_from}, starting at step {trainer.step}"
     )

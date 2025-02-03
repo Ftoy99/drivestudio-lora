@@ -185,7 +185,7 @@ def remove_from_optim(optimizer, deleted_mask, param_dict):
             # # Modify the state directly without deleting and reassigning.
             param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
             param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
-            #TODO
+            # TODO
             # if "exp_avg" in param_state:
             #     param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
             # if "exp_avg_sq" in param_state:
@@ -196,6 +196,7 @@ def remove_from_optim(optimizer, deleted_mask, param_dict):
             del optimizer.param_groups[group_idx]["params"]
             optimizer.param_groups[group_idx]["params"] = new_params
             optimizer.state[new_params[0]] = param_state
+
 
 def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
     """adds the parameters to the optimizer"""
@@ -222,6 +223,7 @@ def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
             optimizer.state[new_params[0]] = param_state
             optimizer.param_groups[group_idx]["params"] = new_params
             del old_params
+
 
 def k_nearest_sklearn(x: torch.Tensor, k: int):
     """
