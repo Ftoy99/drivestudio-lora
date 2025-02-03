@@ -6,7 +6,7 @@ import json
 import wandb
 import logging
 import argparse
-
+from peft import PeftModel
 import torch
 from datasets.driving_dataset import DrivingDataset
 from models.gaussians import VanillaGaussians
@@ -216,20 +216,17 @@ if __name__ == "__main__":
         load_only_model=True
     )
 
-    #Original
-    print(f"Means {trainer.models['Background']._means}")
-    print(f"Scales {trainer.models['Background']._scales}")
-    print(f"Quats {trainer.models['Background']._quats}")
-    print(f"Opacities {trainer.models['Background']._opacities}")
-    print(f"Features_dc {trainer.models['Background']._features_dc}")
-    print(f"Features_rest {trainer.models['Background']._features_rest}")
+    # Apply LoRA adapter
+    lora_model = PeftModel.from_pretrained(trainer.models["DeformableNodes"], "lora/lora_latest.pth")
+
+    print(trainer.models["DeformableNodes"])
 
     for layer_name, model in trainer.models.items():
         print(f"Layer {layer_name} -> Class: {model}")  # Print class of the model
         for name, param in model.named_parameters():
             print(name, param.shape)
 
-    from peft import LoraConfig, TaskType, get_peft_model
+    from peft import LoraConfig, TaskType, get_peft_model, PeftModel
 
     lora_config = LoraConfig(
         r=8,
