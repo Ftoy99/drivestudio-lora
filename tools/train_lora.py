@@ -180,16 +180,16 @@ def main(args):
         r=32,
         lora_alpha=32,
         init_lora_weights="gaussian",
-        #TODO Add prediction 2
         target_modules=["deform_network.linear.0", "deform_network.linear.1", "deform_network.linear.2",
                         "deform_network.linear.3", "deform_network.linear.4", "deform_network.linear.5",
-                        "deform_network.linear.6", "deform_network.linear.7", ],
-        task_type=TaskType.FEATURE_EXTRACTION
+                        "deform_network.linear.6", "deform_network.linear.7", "deform_network.gaussian_warp","deform_network.gaussian_rotation"],
+                         task_type=TaskType.FEATURE_EXTRACTION
     )
     # Apply LoRA
     logger.info(f"Applying lora config")
-    logger.info(trainer.models["DeformableNodes"])
+
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
+
     lora_model.print_trainable_parameters()
 
     # setup optimizer  
