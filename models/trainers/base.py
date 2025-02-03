@@ -182,6 +182,8 @@ class BasicTrainer(nn.Module):
             lr=learning_rate,
             eps=eps
         )
+        self.lr_schedulers = lr_schedulers
+        self.grad_scaler = torch.cuda.amp.GradScaler(enabled=self.optim_general.get("use_grad_scaler", False))
 
     def initialize_optimizer(self) -> None:
         # get param groups first
