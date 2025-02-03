@@ -216,13 +216,13 @@ if __name__ == "__main__":
         load_only_model=True
     )
 
-    for model in trainer.models:
-        print(model)
+    for layer_name, model in trainer.models.items():
+        print(f"Layer {layer_name} -> Class: {model}")  # Print class of the model
+        for name, param in model.named_parameters():
+            print(name, param.shape)
 
     # Apply LoRA adapter
     lora_model = PeftModel.from_pretrained(trainer.models["DeformableNodes"], "lora/lora_latest.pth")
-
-    print(trainer.models["DeformableNodes"])
 
     for layer_name, model in trainer.models.items():
         print(f"Layer {layer_name} -> Class: {model}")  # Print class of the model
