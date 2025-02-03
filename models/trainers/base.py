@@ -174,6 +174,15 @@ class BasicTrainer(nn.Module):
     def _init_models(self) -> None:
         raise NotImplementedError("Please implement the _init_models function")
 
+    def initialize_optimizer_lora(self, lora, learning_rate=1e-3,eps=1e-15) -> None:
+        logger.info("Intiializing optimizer for lora training")
+        print(lora.parameters())
+        self.optimizer = torch.optim.AdamW(
+            filter(lambda p: p.requires_grad, lora.parameters()),
+            lr=learning_rate,
+            eps=eps
+        )
+
     def initialize_optimizer(self) -> None:
         # get param groups first
         self.param_groups = {}

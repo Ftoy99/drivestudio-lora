@@ -170,10 +170,6 @@ def main(args):
     if cfg.render.vis_error:
         render_keys.insert(render_keys.index("rgbs") + 1, "rgb_error_maps")
 
-    print("All Available")
-    for name, module in trainer.models["DeformableNodes"].named_modules():
-        print(name)
-
     # # Add the lora peft
     from peft import LoraConfig, TaskType, get_peft_model
     logger.info(f"Creating lora config")
@@ -181,6 +177,7 @@ def main(args):
         r=8,
         lora_alpha=8,
         init_lora_weights="gaussian",
+        #TODO Add prediction 2
         target_modules=["deform_network.linear.0", "deform_network.linear.1", "deform_network.linear.2",
                         "deform_network.linear.3", "deform_network.linear.4", "deform_network.linear.5",
                         "deform_network.linear.6", "deform_network.linear.7", ],
@@ -192,7 +189,7 @@ def main(args):
     lora_model.print_trainable_parameters()
 
     # setup optimizer  
-    trainer.initialize_optimizer()
+    trainer.initialize_optimizer_lora(lora_model)
 
     # setup metric logger
     metrics_file = os.path.join(cfg.log_dir, "metrics.json")
