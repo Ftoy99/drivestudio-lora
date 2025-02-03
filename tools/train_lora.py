@@ -170,6 +170,10 @@ def main(args):
     if cfg.render.vis_error:
         render_keys.insert(render_keys.index("rgbs") + 1, "rgb_error_maps")
 
+    print("All Available")
+    for name, module in trainer.models["DeformableNodes"].named_modules():
+        print(name)
+
     # # Add the lora peft
     from peft import LoraConfig, TaskType, get_peft_model
     logger.info(f"Creating lora config")
