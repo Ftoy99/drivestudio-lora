@@ -188,7 +188,6 @@ def main(args):
     )
     # Apply LoRA
     logger.info(f"Applying lora config")
-    logger.info(trainer.models["DeformableNodes"].)
     logger.info(trainer.models["DeformableNodes"])
     lora_model = get_peft_model(trainer.models["DeformableNodes"], lora_config)
     lora_model.print_trainable_parameters()
