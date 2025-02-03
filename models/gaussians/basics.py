@@ -207,7 +207,6 @@ def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
             new_params = param_dict[name]
             param_state = optimizer.state[old_params]
             print(f"param state for {name} {param_state}")
-            print(f"exp avg {name} {param_state['exp_avg']}")
             repeat_dims = (n,) + tuple(1 for _ in range(param_state["exp_avg"].dim() - 1))
             param_state["exp_avg"] = torch.cat(
                 [param_state["exp_avg"],
