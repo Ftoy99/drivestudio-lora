@@ -216,12 +216,14 @@ if __name__ == "__main__":
         load_only_model=True
     )
 
+    print("Original")
     for layer_name, model in trainer.models.items():
         print(model)
 
     # Apply LoRA adapter
     lora_model = PeftModel.from_pretrained(trainer.models["DeformableNodes"], "lora/lora_latest.pth")
 
+    print("Lora applied")
     for layer_name, model in trainer.models.items():
         print(model)
 
