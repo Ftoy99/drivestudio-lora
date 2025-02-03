@@ -173,58 +173,55 @@ class dataclass_gs:
 
 
 def remove_from_optim(optimizer, deleted_mask, param_dict):
-    # """removes the deleted_mask from the optimizer provided"""
-    # for group_idx, group in enumerate(optimizer.param_groups):
-    #     name = group["name"]
-    #     if name in param_dict.keys():
-    #         old_params = group["params"][0]
-    #         new_params = param_dict[name]
-    #         assert len(new_params) == 1
-    #         param_state = optimizer.state[old_params]
-    #         del optimizer.state[old_params]
-    #         # # Modify the state directly without deleting and reassigning.
-    #         # param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
-    #         # param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
-    #         #TODO
-    #         # if "exp_avg" in param_state:
-    #         #     param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
-    #         # if "exp_avg_sq" in param_state:
-    #         #     param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
-    #
-    #         # Update the parameter in the optimizer's param group.
-    #         del optimizer.param_groups[group_idx]["params"][0]
-    #         del optimizer.param_groups[group_idx]["params"]
-    #         optimizer.param_groups[group_idx]["params"] = new_params
-    #         optimizer.state[new_params[0]] = param_state
-    pass
+    """removes the deleted_mask from the optimizer provided"""
+    for group_idx, group in enumerate(optimizer.param_groups):
+        name = group["name"]
+        if name in param_dict.keys():
+            old_params = group["params"][0]
+            new_params = param_dict[name]
+            assert len(new_params) == 1
+            param_state = optimizer.state[old_params]
+            del optimizer.state[old_params]
+            # # Modify the state directly without deleting and reassigning.
+            param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+            param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+            #TODO
+            # if "exp_avg" in param_state:
+            #     param_state["exp_avg"] = param_state["exp_avg"][~deleted_mask]
+            # if "exp_avg_sq" in param_state:
+            #     param_state["exp_avg_sq"] = param_state["exp_avg_sq"][~deleted_mask]
+
+            # Update the parameter in the optimizer's param group.
+            del optimizer.param_groups[group_idx]["params"][0]
+            del optimizer.param_groups[group_idx]["params"]
+            optimizer.param_groups[group_idx]["params"] = new_params
+            optimizer.state[new_params[0]] = param_state
 
 def dup_in_optim(optimizer, dup_mask, param_dict, n=2):
     """adds the parameters to the optimizer"""
-    # for group_idx, group in enumerate(optimizer.param_groups):
-    #     name = group["name"]
-    #     if name in param_dict.keys():
-    #         old_params = group["params"][0]
-    #         new_params = param_dict[name]
-    #         param_state = optimizer.state[old_params]
-    #         repeat_dims = (n,) + tuple(1 for _ in range(param_state["exp_avg"].dim() - 1))
-    #          param_state["exp_avg"] = torch.cat(
-    #             [param_state["exp_avg"],
-    #              torch.zeros_like(param_state["exp_avg"][dup_mask.squeeze()]).repeat(*repeat_dims)],
-    #             dim=0,
-    #         )
-    #         param_state["exp_avg_sq"] = torch.cat(
-    #             [
-    #                 param_state["exp_avg_sq"],
-    #                 torch.zeros_like(param_state["exp_avg_sq"][dup_mask.squeeze()]).repeat(*repeat_dims),
-    #             ],
-    #             dim=0,
-    #         )
-    #         del optimizer.state[old_params]
-    #         optimizer.state[new_params[0]] = param_state
-    #         optimizer.param_groups[group_idx]["params"] = new_params
-    #         del old_params
-    pass
-
+    for group_idx, group in enumerate(optimizer.param_groups):
+        name = group["name"]
+        if name in param_dict.keys():
+            old_params = group["params"][0]
+            new_params = param_dict[name]
+            param_state = optimizer.state[old_params]
+            repeat_dims = (n,) + tuple(1 for _ in range(param_state["exp_avg"].dim() - 1))
+            param_state["exp_avg"] = torch.cat(
+                [param_state["exp_avg"],
+                 torch.zeros_like(param_state["exp_avg"][dup_mask.squeeze()]).repeat(*repeat_dims)],
+                dim=0,
+            )
+            param_state["exp_avg_sq"] = torch.cat(
+                [
+                    param_state["exp_avg_sq"],
+                    torch.zeros_like(param_state["exp_avg_sq"][dup_mask.squeeze()]).repeat(*repeat_dims),
+                ],
+                dim=0,
+            )
+            del optimizer.state[old_params]
+            optimizer.state[new_params[0]] = param_state
+            optimizer.param_groups[group_idx]["params"] = new_params
+            del old_params
 
 def k_nearest_sklearn(x: torch.Tensor, k: int):
     """
