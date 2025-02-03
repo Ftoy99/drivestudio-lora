@@ -514,10 +514,19 @@ class BasicTrainer(nn.Module):
 
         return outputs
 
+    def backward_lora(self, loss_dict: Dict[str, torch.Tensor]) -> None:
+        # ----------------- backward ----------------
+        total_loss = sum(loss for loss in loss_dict.values()) # Total loss
+        self.grad_scaler.scale(total_loss).backward() # Scale total_loss for gradient underflow and backward
+        self.optimizer_step()
+
+        scale = self.grad_scaler.get_scale()
+        self.grad_scaler.update()
+
     def backward(self, loss_dict: Dict[str, torch.Tensor]) -> None:
         # ----------------- backward ----------------
-        total_loss = sum(loss for loss in loss_dict.values())
-        self.grad_scaler.scale(total_loss).backward()
+        total_loss = sum(loss for loss in loss_dict.values()) # Total loss
+        self.grad_scaler.scale(total_loss).backward() # Scale total_loss for gradient underflow and backward
         self.optimizer_step()
 
         scale = self.grad_scaler.get_scale()
@@ -525,6 +534,7 @@ class BasicTrainer(nn.Module):
 
         # If the gradient scaler is decreased, no optimization step is performed so we should not step the scheduler.
         if scale <= self.grad_scaler.get_scale():
+            print(self.optimizer.param_groups)
             for group in self.optimizer.param_groups:
                 if group["name"] in self.lr_schedulers:
                     new_lr = self.lr_schedulers[group["name"]](self.step)
