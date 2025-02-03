@@ -520,9 +520,6 @@ class BasicTrainer(nn.Module):
         self.grad_scaler.scale(total_loss).backward() # Scale total_loss for gradient underflow and backward
         self.optimizer_step()
 
-        scale = self.grad_scaler.get_scale()
-        self.grad_scaler.update()
-
     def backward(self, loss_dict: Dict[str, torch.Tensor]) -> None:
         # ----------------- backward ----------------
         total_loss = sum(loss for loss in loss_dict.values()) # Total loss
