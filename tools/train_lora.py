@@ -305,8 +305,6 @@ def main(args):
         metric_logger.update(**{"train_metrics/" + k: v.item() for k, v in metric_dict.items()})
         metric_logger.update(**{"train_stats/gaussian_num_" + k: v for k, v in trainer.get_gaussian_count().items()})
         metric_logger.update(**{"losses/" + k: v.item() for k, v in loss_dict.items()})
-        metric_logger.update(
-            **{"train_stats/lr_" + group['name']: group['lr'] for group in trainer.optimizer.param_groups})
         if args.enable_wandb:
             wandb.log({k: v.avg for k, v in metric_logger.meters.items()})
 
